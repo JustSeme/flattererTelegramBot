@@ -1,5 +1,7 @@
 import { BotService } from "../application/bot.service"
-import { bot } from "../webhook."
+import { ComplimentsRepository } from "../infrastructure/compliments.repository"
+import { UserContactsInfo } from "../infrastructure/userContactsInfoType"
+import { bot } from "../main"
 
 export const start = () => {
     bot.setMyCommands([
@@ -20,6 +22,10 @@ export const start = () => {
             return bot.sendMessage(chatId, responseData.responseText)
         }
 
+        console.log(msg);
+
+        console.log(match);
+
         if (recivedText === '/info') {
             const responseData = BotService.info(msg.date, msg.chat.username)
             return bot.sendMessage(chatId, responseData.responseText)
@@ -32,6 +38,21 @@ export const start = () => {
 
         if (recivedText === '/register') {
             return bot.sendMessage(chatId, 'Я позже это сделаю')
+        }
+
+        if (recivedText === '/set-user-contacts-info') {
+            const userContactsInfo: UserContactsInfo = {
+                chatId: msg.chat.id,
+                first_name: msg.from.first_name,
+                userId: msg.from.id
+            }
+            return ComplimentsRepository.addUserContactInfo(userContactsInfo)
+        }
+
+        if (recivedText === '/get-user-contacts-info') {
+            const userContactsData = await ComplimentsRepository.getAllUserContactsInfo()
+            const userJSONData = JSON.stringify(userContactsData)
+            return userJSONData
         }
 
         return bot.sendMessage(chatId, 'Мило, что ты написала, но я тебя не понимаю!)')
