@@ -1,6 +1,6 @@
-import { botService } from "../application/bot.service"
+import { BotService } from "../application/bot.service"
 import { bot } from "../createBot"
-import { getTimeOfDay } from "../helpers"
+import { complimentsCollection } from "../infrastructure/db"
 
 export const start = () => {
     bot.setMyCommands([
@@ -15,14 +15,19 @@ export const start = () => {
         const recivedText = msg.text
 
         if (recivedText === '/start') {
-            const responseData = botService.start()
+            const responseData = BotService.start()
 
             await bot.sendSticker(chatId, responseData.stickerURL)
             return bot.sendMessage(chatId, responseData.responseText)
         }
 
         if (recivedText === '/info') {
-            const responseData = botService.info(msg.date, msg.chat.username)
+            const responseData = BotService.info(msg.date, msg.chat.username)
+            return bot.sendMessage(chatId, responseData.responseText)
+        }
+
+        if (recivedText === '/compliment') {
+            const responseData = await BotService.getCompliment()
             return bot.sendMessage(chatId, responseData.responseText)
         }
 
