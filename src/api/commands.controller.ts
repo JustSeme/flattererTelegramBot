@@ -1,6 +1,5 @@
 import { BotService } from "../application/bot.service"
-import { complimentsCollection } from "../infrastructure/db"
-import { bot } from "../main"
+import { bot } from "../webhook."
 
 export const start = () => {
     bot.setMyCommands([

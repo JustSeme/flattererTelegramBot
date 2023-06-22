@@ -6,5 +6,13 @@ import TelegramBot from "node-telegram-bot-api";
 const token = process.env.TELEGRAM_BOT_TOKEN
 export const bot = new TelegramBot(token, { polling: true })
 
-start()
-runDB()
+
+module.exports = async (request, response) => {
+    await runDB()
+    await start()
+    response.json({
+        body: request.body,
+        query: request.query,
+        cookies: request.cookies,
+    });
+};
