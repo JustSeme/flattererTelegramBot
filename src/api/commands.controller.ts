@@ -6,7 +6,7 @@ export const start = () => {
     bot.setMyCommands([
         { command: '/start', description: 'Приветствие' },
         { command: '/info', description: 'Получить информацию' },
-        { command: '/complimet', description: 'Получить случайный комплиент' },
+        { command: '/compliment', description: 'Получить случайный комплиент' },
         { command: '/register', description: 'Подписаться на рассылку комплиментов' },
     ])
 

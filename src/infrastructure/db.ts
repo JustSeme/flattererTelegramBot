@@ -6,7 +6,7 @@ const client = new MongoClient(mongoURI)
 
 const complimentsBotDB = client.db('complimentsBot')
 
-export const complimentsCollection = complimentsBotDB.collection('compliments')
+export const complimentsCollection = complimentsBotDB.collection<{ id: number, complimentText: string }>('compliments')
 
 export async function runDB() {
     try {
