@@ -1,0 +1,20 @@
+{
+  "name": "complimentsBot",
+  "version": "1.0.0",
+  "main": "main.ts",
+  "author": "justSeme",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "node-telegram-bot-api": "^0.61.0",
+    "nodemon": "^2.0.22"
+  },
+  "scripts": {
+    "watch": "tsc -w",
+    "dev": "nodemon ./dist/main.js",
+    "start": "node ./dist/main.js"
+  },
+  "devDependencies": {
+    "@types/node-telegram-bot-api": "^0.61.6"
+  }
+}
