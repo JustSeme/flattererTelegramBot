@@ -31,6 +31,10 @@ export const start = () => {
             return bot.sendMessage(chatId, responseData.responseText)
         }
 
+        if (recivedText === '/register') {
+            return bot.sendMessage(chatId, 'Я позже это сделаю')
+        }
+
         return bot.sendMessage(chatId, 'Мило, что ты написала, но я тебя не понимаю!)')
     })
 }
