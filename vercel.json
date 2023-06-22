@@ -1,0 +1,7 @@
+{
+    "version": 2,
+    "name": "blog-platform-nest-js",
+    "builds": [
+        { "src": "dist/main.js", "use": "@vercel/node" }
+    ]
+}
