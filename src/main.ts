@@ -9,7 +9,8 @@ export const bot = new TelegramBot(token, { polling: true })
 
 export const calendar = new Calendar(bot, {
     date_format: 'DD.MM.YYYY',
-    language: 'ru'
+    language: 'ru',
+    custom_start_msg: 'Пожалуйста, давай выберем дату:'
 });
 
 runDB()

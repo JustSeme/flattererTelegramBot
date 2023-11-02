@@ -11,11 +11,15 @@ export const ComplimentsCollection = complimentsBotDB.collection<{
     complimentText: string
 }>('compliments')
 
-export const UserContactsInfoCollection = complimentsBotDB.collection<{
+export const TodosCollection = complimentsBotDB.collection<{
     userId: number,
     chatId: number,
-    first_name: string
-}>('userContactsInfo')
+    firstName: string,
+    todoText: string,
+    completed: boolean,
+    todoDate: Date,
+    todoTime: string
+}>('todos')
 
 export async function runDB() {
     try {

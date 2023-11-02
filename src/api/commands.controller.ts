@@ -1,15 +1,10 @@
 import { BotService } from "../application/bot.service"
-import { ComplimentsRepository } from "../infrastructure/compliments.repository"
-import { UserContactsInfo } from "../infrastructure/userContactsInfoType"
+import { commonCommands } from "../constants"
+import { TodoType } from "../infrastructure/TodoType"
 import { bot, calendar } from "../main"
 
 export const start = () => {
-    bot.setMyCommands([
-        { command: '/start', description: 'Приветствие' },
-        { command: '/info', description: 'Получить информацию' },
-        { command: '/compliment', description: 'Получить случайный комплиент' },
-        { command: '/register', description: 'Подписаться на рассылку комплиментов' },
-    ])
+    bot.setMyCommands(commonCommands)
 
     bot.on('message', async (msg, match) => {
         const chatId = msg.chat.id
@@ -18,12 +13,6 @@ export const start = () => {
 
         switch(recivedText) {
             case '/start':
-                await bot.setMyCommands([
-                    { command: '/start', description: 'Приветствие' },
-                    { command: '/info', description: 'Получить информацию' },
-                    { command: '/compliment', description: 'Получить случайный комплиент' },
-                    { command: '/register', description: 'Подписаться на рассылку комплиментов' },
-                ])
                 responseData = BotService.start()
 
                 await bot.sendSticker(chatId, responseData.stickerURL)
@@ -34,28 +23,55 @@ export const start = () => {
             case '/compliment':
                 responseData = await BotService.getCompliment()
                 return bot.sendMessage(chatId, responseData.responseText)
-            case '/register':
-                calendar.startNavCalendar(msg)
-                return bot.sendMessage(chatId, 'Как часто ты хочешь получать комплименты?')
-            case '/set-user-contacts-info':
-                const userContactsInfo: UserContactsInfo = {
-                    chatId: msg.chat.id,
-                    first_name: msg.from.first_name,
-                    userId: msg.from.id
+            case '/todo':
+                const todoOptions = {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: 'Мои задачи', callback_data: 'show_all_todos'},
+                            { text: 'Создать задачу', callback_data: 'create_todo' }]
+                        ]
+                    }
                 }
-                return ComplimentsRepository.addUserContactInfo(userContactsInfo)
+
+                //calendar.startNavCalendar(msg)
+                return bot.sendMessage(chatId, 'Ты лучший! Ах, да... задачи. Выбери, что ты хочешь сделать', todoOptions)
             default:
                 return bot.sendMessage(chatId, 'Мило, что ты написала, но я тебя не понимаю!)')
         }
     })
 
-    bot.on("callback_query", (query) => {
-        if (query.message.message_id == calendar.chats.get(query.message.chat.id)) {
-            const res = calendar.clickButtonCalendar(query);
+    bot.on("callback_query", (msg) => {
+        const message = msg.message
+        const chatId = message.chat.id
+        const data = msg.data
+
+        if (message.text === 'Пожалуйста, давай выберем дату:' && message.message_id == calendar.chats.get(chatId)) {
+            const res = calendar.clickButtonCalendar(msg);
             if (res !== -1) {
                 // here will be insert notify action
-                bot.sendMessage(query.message.chat.id, `Я счастлив как никогда! Жду не дождусь когда настанет ${res} чтобы снова написать тебе.`);
+                return bot.sendMessage(chatId, `Я счастлив как никогда! Жду не дождусь когда настанет ${res} чтобы снова написать тебе.`);
             }
+        }
+
+        switch(data) {
+            case('show_all_todos'):
+                // here will be get all todos by userId
+                return
+            case('create_todo'):
+                const todo: TodoType = {
+                    userId: msg.from.id,
+                    chatId: chatId,
+                    firstName: msg.from.first_name,
+                    todoText: 'str',
+                    completed: false,
+                    todoDate: new Date(),
+                    todoTime: 'str'
+                }
+                /* await BotService.createTodo(todo) */
+
+                return
+            default:
+                return bot.sendMessage(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
         }
     });
 }

@@ -1,4 +1,5 @@
 import { getTimeOfDay } from "../helpers"
+import { TodoType } from "../infrastructure/TodoType"
 import { ComplimentsRepository } from "../infrastructure/compliments.repository"
 
 export const BotService = {
@@ -9,13 +10,17 @@ export const BotService = {
         }
     },
 
+    getCompliment(): Promise<{ responseText: string }> {
+        return ComplimentsRepository.getRandomCompliment()
+    },
+
+    createTodo(todo: TodoType) {
+        
+    },
+
     info(currentUserDate: number, username: string): { responseText: string } {
         const timeOfDay = getTimeOfDay(currentUserDate)
 
         return { responseText: `Ты всегда так нежно спрашиваешь у меня информацию... Сейчас ${timeOfDay} и твоё прекрасное имя - ${username}!` }
     },
-
-    getCompliment(): Promise<{ responseText: string }> {
-        return ComplimentsRepository.getRandomCompliment()
-    }
 }
