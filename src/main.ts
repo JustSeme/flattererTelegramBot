@@ -19,6 +19,6 @@ runDB()
 start()
 
 
-/* setInterval(async() => {
+setInterval(async() => {
     return bot.sendMessage(789878593, 'Рад, что ты меня разрабатываешь))')
-}, 60000) */
+}, 60000)

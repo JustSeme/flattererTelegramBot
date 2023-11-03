@@ -7,6 +7,8 @@ import { CreateTodoStateType } from "../types/UserStateType"
 import { UserStateQueryRepository } from "../infrastructure/userState.query-repository"
 import { UserStateService } from "../application/userState.service"
 import { TodoService } from "../application/todo.serivce"
+import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
+import { getWordByNumber } from "../helpers"
 
 export const start = () => {
     bot.setMyCommands(commonCommands)
@@ -30,13 +32,17 @@ export const start = () => {
                 responseData = await BotService.getCompliment()
                 return bot.sendMessage(chatId, responseData.responseText)
             case '/todo':
-                const todoOptions: SendMessageOptions = {
+                const todoOptions = {
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: 'Мои задачи', callback_data: 'show_all_todos',},
-                            { text: 'Создать задачу', callback_data: 'create_todo' }]
+                            [{ text: 'Мои задачи', callback_data: 'show_all_todos'}, { text: 'Создать задачу', callback_data: 'create_todo' }],
                         ]
                     }
+                }
+                const todosCount = await TodosQueryRepository.getTodosCountByUserId(userId)
+
+                if(todosCount > 0) {
+                    todoOptions.reply_markup.inline_keyboard.push([{ text: 'Удалить все задачи', callback_data: 'delete_all_todos' }])
                 }
 
                 return bot.sendMessage(chatId, 'Ты лучший! Ах, да... задачи. Выбери, что ты хочешь сделать', todoOptions)
@@ -59,13 +65,7 @@ export const start = () => {
 
                 switch(userState.messageThread) {
                     case('create_todo'):
-                        if(userState.todoText) {
-                            if(userState.todoDate) {
-                                if(userState.todoTime) {
-
-                                }
-                            }
-                        } else {
+                        if(!userState.todoText) {
                             userState.todoText = recivedText
                             await UserStateService.updateUserState(userState)
 
@@ -87,7 +87,7 @@ export const start = () => {
     bot.on('callback_query', async (msg) => {
         const message = msg.message
         const chatId = message.chat.id
-        const data = msg.data
+        let data = msg.data
         const userId = msg.from.id
 
         const actualUserState = await UserStateQueryRepository.getUserState(userId)
@@ -104,13 +104,15 @@ export const start = () => {
                                 userId: msg.from.id,
                                 chatId: chatId,
                                 firstName: msg.from.first_name,
-                                todoText: 'str',
+                                todoText: actualUserState.todoText,
                                 completed: false,
-                                todoDate: new Date(),
-                                todoTime: 'str'
+                                todoDate: date,
+                                todoTime: time,
                             }
 
                             await TodoService.createTodo(todo)
+
+                            await UserStateService.deleteUserState(userId)
                             return bot.sendMessage(chatId, `Задача создана! Жду не дождусь когда настанет ${date} чтобы в ${time} снова написать тебе.`)
                         default:
                             return
@@ -121,10 +123,33 @@ export const start = () => {
             }
         }
 
+        let todoId = ''
+        if(data.indexOf('show_todo-') > -1) {
+            todoId = data.split('-')[1]
+            data = 'show_todo'
+        }
+
         switch(data) {
             case('show_all_todos'):
-                // here will be get all todos by userId
-                return
+                const todos = await TodosQueryRepository.getTodosByUserId(userId)
+
+                if(!todos.length) {
+                    return bot.sendMessage(chatId, 'Никаких задач пока что нет... но я бы очень хотел их создать!')
+                }
+
+                const todosOptions = {
+                    reply_markup: {
+                        inline_keyboard: []
+                    }
+                }
+
+                for(const todo of todos) {
+                    todosOptions.reply_markup.inline_keyboard.push([{ text: todo.todoText, callback_data: `show_todo-${todo._id}` }])
+                }
+
+                const taskWord = getWordByNumber(todos.length, ['задача', 'задачи', 'задач'])
+                
+                return bot.sendMessage(chatId, `У тебя ${todos.length} ${taskWord}. Нажми на любую чтобы я дал более точную информацию`, todosOptions)
             case('create_todo'):
                 const userState: CreateTodoStateType = {
                     userId,
@@ -178,6 +203,22 @@ export const start = () => {
 
                 await bot.sendMessage(chatId, `Всё ради тебя! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?`)
                 return calendar.startNavCalendar(message)
+            case('delete_all_todos'):
+                const deletedCount = await TodoService.deleteAllTodos(userId)
+
+                if(deletedCount < 0) {
+                    return bot.sendMessage(chatId, 'Что-то пошло не по плану :-/')
+                }
+
+                return bot.sendMessage(chatId, `Твоя воля - закон. Хотя это печально, что мне пришлось удалить ${deletedCount} задач`)
+            case('show_todo'):
+                const todoById = await TodosQueryRepository.getTodoById(todoId)
+
+                if(!todoById) {
+                    return bot.sendMessage(chatId, 'Что-то пошло не по плану - не могу найти эту задачу.')
+                }
+
+                return bot.sendMessage(chatId, `Текст задачи - ${todoById.todoText} \nДата выполнения - ${todoById.todoDate} \nВремя выполнения - ${todoById.todoTime} \n`)
             default:
                 return bot.sendMessage(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
         }
