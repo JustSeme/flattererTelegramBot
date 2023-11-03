@@ -2,10 +2,6 @@ import { UserStateCollection } from "./db"
 import { UserStateType } from "../types/UserStateType"
 
 export const UserStateRepository = {
-    async getUserState(userId: number) {
-        return UserStateCollection.findOne({ userId })
-    },
-
     async createUserState(userState: UserStateType) {
         try {
             await UserStateCollection.insertOne(userState)
@@ -18,7 +14,20 @@ export const UserStateRepository = {
 
     async deleteUserState(userId: number) {
         try {
-            await UserStateCollection.deleteOne({ userId })
+            await UserStateCollection.deleteMany({ userId })
+            return true
+        } catch (err) {
+            console.error(err)
+            return false
+        }
+    },
+
+    async updateUserState(userState: UserStateType) {
+        try {
+            await UserStateCollection.updateOne(
+                { userId: userState.userId },
+                { $set: { 'todoText': userState.todoText, 'todoDate': userState.todoDate, 'todoTime': userState.todoTime } 
+            })
             return true
         } catch (err) {
             console.error(err)

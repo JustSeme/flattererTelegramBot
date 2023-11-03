@@ -1,8 +1,9 @@
-export type UserStateType = TodoStateType
+export type UserStateType = CreateTodoStateType
 
-export type TodoStateType = {
+export type CreateTodoStateType = {
     userId: number
-    todoText?: string
-    todoDate?: Date
-    todoTime?: string
+    todoText: string | null
+    todoDate: Date | null
+    todoTime: string | null
+    messageThread: 'create_todo'
 }

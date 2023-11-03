@@ -4,11 +4,10 @@ import { TodosCollection } from "./db"
 export const TodosRepository = {
     async createTodo(todo: TodoType) {
         try {
-            await TodosCollection.insertOne(todo)
-            return true
+            return TodosCollection.insertOne(todo)
         } catch (err) {
             console.error(err)
-            return false
+            return null
         }
     }
 }
