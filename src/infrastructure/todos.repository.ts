@@ -1,7 +1,7 @@
-import { TodoType } from "./TodoType"
+import { TodoType } from "../types/TodoType"
 import { TodosCollection } from "./db"
 
-export const ComplimentsRepository = {
+export const TodosRepository = {
     async createTodo(todo: TodoType) {
         try {
             await TodosCollection.insertOne(todo)

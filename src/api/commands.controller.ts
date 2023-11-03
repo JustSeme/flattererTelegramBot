@@ -1,7 +1,9 @@
+import { SendMessageOptions } from "node-telegram-bot-api"
 import { BotService } from "../application/bot.service"
 import { commonCommands } from "../constants"
-import { TodoType } from "../infrastructure/TodoType"
+import { TodoType } from "../types/TodoType"
 import { bot, calendar } from "../main"
+import { TodoStateType } from "../types/UserStateType"
 
 export const start = () => {
     bot.setMyCommands(commonCommands)
@@ -24,10 +26,10 @@ export const start = () => {
                 responseData = await BotService.getCompliment()
                 return bot.sendMessage(chatId, responseData.responseText)
             case '/todo':
-                const todoOptions = {
+                const todoOptions: SendMessageOptions = {
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: 'Мои задачи', callback_data: 'show_all_todos'},
+                            [{ text: 'Мои задачи', callback_data: 'show_all_todos',},
                             { text: 'Создать задачу', callback_data: 'create_todo' }]
                         ]
                     }
@@ -40,10 +42,11 @@ export const start = () => {
         }
     })
 
-    bot.on("callback_query", (msg) => {
+    bot.on("callback_query", async (msg) => {
         const message = msg.message
         const chatId = message.chat.id
         const data = msg.data
+        const userId = msg.from.id
 
         if (message.text === 'Пожалуйста, давай выберем дату:' && message.message_id == calendar.chats.get(chatId)) {
             const res = calendar.clickButtonCalendar(msg);
@@ -58,7 +61,7 @@ export const start = () => {
                 // here will be get all todos by userId
                 return
             case('create_todo'):
-                const todo: TodoType = {
+                /* const todo: TodoType = {
                     userId: msg.from.id,
                     chatId: chatId,
                     firstName: msg.from.first_name,
@@ -67,9 +70,25 @@ export const start = () => {
                     todoDate: new Date(),
                     todoTime: 'str'
                 }
-                /* await BotService.createTodo(todo) */
+                await BotService.createTodo(todo) */
+                const createTodoOptions: SendMessageOptions = {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: 'Я передумал создавать задачу', callback_data: 'cancel_create_todo' }]
+                        ]
+                    }
+                }
 
-                return
+                const userState: TodoStateType = { userId }
+
+                await BotService.createUserState(userState)
+
+                return bot.sendMessage(chatId, 'Для начала ответь, каким будет текст задачи?', createTodoOptions)
+            case('cancel_create_todo'):
+                
+                await BotService.deleteUserState(userId)
+                
+                return bot.sendMessage(chatId, 'Если хочешь, можем и не создавать задачу. У меня ведь ещё есть как тебе угодить!')
             default:
                 return bot.sendMessage(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
         }

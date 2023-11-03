@@ -1,6 +1,8 @@
 import { getTimeOfDay } from "../helpers"
-import { TodoType } from "../infrastructure/TodoType"
+import { TodoType } from "../types/TodoType"
 import { ComplimentsRepository } from "../infrastructure/compliments.repository"
+import { UserStateType } from "../types/UserStateType"
+import { UserStateRepository } from "../infrastructure/userState.repository"
 
 export const BotService = {
     start(): { stickerURL: string, responseText: string } {
@@ -16,6 +18,14 @@ export const BotService = {
 
     createTodo(todo: TodoType) {
         
+    },
+
+    async createUserState(userState: UserStateType) {
+        return UserStateRepository.createUserState(userState)
+    },
+
+    async deleteUserState(userId: number) {
+        return UserStateRepository.deleteUserState(userId)
     },
 
     info(currentUserDate: number, username: string): { responseText: string } {
