@@ -1,4 +1,4 @@
-export function getTimeOfDay(date: number): string {
+export function getTimeOfDay(date: number | Date): string {
     const currentHour = new Date(date).getHours()
     if (currentHour >= 0 && currentHour <= 6) {
         return 'ночь'

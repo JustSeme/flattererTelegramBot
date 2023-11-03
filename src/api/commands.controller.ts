@@ -95,25 +95,28 @@ export const start = () => {
         if (message.message_id == calendar.chats.get(chatId)) { // select date and time from calendar
             const res = calendar.clickButtonCalendar(msg);
             if (res !== -1) {
-                const [date, time] = res.split('/')
+                const [date, hours] = res.split('/')
 
                 if(actualUserState) {
                     switch(actualUserState.messageThread) {
                         case('create_todo'):
                             const todo: TodoType = {
-                                userId: msg.from.id,
+                                userId,
                                 chatId: chatId,
                                 firstName: msg.from.first_name,
                                 todoText: actualUserState.todoText,
                                 completed: false,
-                                todoDate: date,
-                                todoTime: time,
+                                todoDate: new Date(date),
+                                hourForNotify: +hours,
                             }
 
                             await TodoService.createTodo(todo)
 
                             await UserStateService.deleteUserState(userId)
-                            return bot.sendMessage(chatId, `Задача создана! Жду не дождусь когда настанет ${date} чтобы в ${time} снова написать тебе.`)
+
+                            const hoursWord = getWordByNumber(hours, ['час', 'часа', 'часов'])
+
+                            return bot.sendMessage(chatId, `Задача создана! Жду не дождусь когда настанет ${date} чтобы в ${hours} ${hoursWord} снова написать тебе.`)
                         default:
                             return
                     }
@@ -209,8 +212,10 @@ export const start = () => {
                 if(deletedCount < 0) {
                     return bot.sendMessage(chatId, 'Что-то пошло не по плану :-/')
                 }
+                
+                const word = getWordByNumber(deletedCount, ['задачу', 'задачи', 'задач'])
 
-                return bot.sendMessage(chatId, `Твоя воля - закон. Хотя это печально, что мне пришлось удалить ${deletedCount} задач`)
+                return bot.sendMessage(chatId, `Твоя воля - закон. Хотя это печально, что мне пришлось удалить ${deletedCount} ${word}`)
             case('show_todo'):
                 const todoById = await TodosQueryRepository.getTodoById(todoId)
 
@@ -218,7 +223,7 @@ export const start = () => {
                     return bot.sendMessage(chatId, 'Что-то пошло не по плану - не могу найти эту задачу.')
                 }
 
-                return bot.sendMessage(chatId, `Текст задачи - ${todoById.todoText} \nДата выполнения - ${todoById.todoDate} \nВремя выполнения - ${todoById.todoTime} \n`)
+                return bot.sendMessage(chatId, `Текст задачи - ${todoById.todoText} \nДата выполнения - ${todoById.todoDate} \nВремя выполнения - ${todoById.hourForNotify}:00 \n`)
             default:
                 return bot.sendMessage(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
         }
