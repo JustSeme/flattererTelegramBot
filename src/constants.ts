@@ -5,3 +5,12 @@ export const commonCommands = [
     { command: '/info', description: 'Получить информацию' },
     { command: '/compliment', description: 'Получить случайный комплиент' },
 ]
+
+export const BUTTONS_DATA = {
+    SHOW_ALL_TODOS_CMD: 'show_all_todos', SHOW_ALL_TODOS_TXT: 'Мои задачи',
+    CREATE_TODO_CMD: 'create_todo', CREATE_TODO_TXT: 'Создать задачу',
+    DELETE_ALL_TODOS_CMD: 'delete_all_todos', DELETE_ALL_TODOS_TXT: 'Удалить все задачи',
+    CANCEL_CREATING_TODO_CMD: 'cancel_creating_todo', CANCEL_CREATING_TODO_TXT: 'Я передумал создавать задачу',
+    DELETE_TODO_TEXT_CMD: 'delete_todo_text', DELETE_TODO_TEXT_TXT: 'Хочу изменить текст задачи',
+    SET_STANDARD_TODO_TEXT_CMD: 'set_standard_todo_text', SET_STANDARD_TODO_TEXT_TXT: 'Стандартный'
+}
