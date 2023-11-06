@@ -1,5 +1,4 @@
 export type TodoType = {
-    userId: number,
     chatId: number,
     firstName: string,
     completed: boolean,

@@ -3,9 +3,9 @@ import { runDB } from "./infrastructure/db";
 import Calendar from 'telegram-inline-calendar'
 import TelegramBot from "node-telegram-bot-api";
 import { TodosQueryRepository } from "./infrastructure/todos.query-repository";
-import { messagesHandler } from "./api/commands.controller";
+import { messagesController } from "./api/messages.controller";
 import { commonCommands } from "./constants";
-import { callbackHandler } from "./api/callback.controller";
+import { callbackController } from "./api/callback.controller";
 
 const token = process.env.TELEGRAM_BOT_TOKEN
 export const bot = new TelegramBot(token, { polling: true })
@@ -21,9 +21,9 @@ export const calendar = new Calendar(bot, {
 const start = () => {
     bot.setMyCommands(commonCommands)
 
-    bot.on('message', messagesHandler)
+    bot.on('message', messagesController)
 
-    bot.on('callback_query', callbackHandler);
+    bot.on('callback_query', callbackController);
 
     setInterval(async () => {
         const todosForNotify = await TodosQueryRepository.getTodosForNotify()

@@ -1,7 +1,7 @@
 import { UserStateCollection } from "./db"
 
 export const UserStateQueryRepository = {
-    async getUserState(userId: number) {
-        return UserStateCollection.findOne({ userId })
+    async getUserState(chatId: number) {
+        return UserStateCollection.findOne({ chatId })
     },
 }

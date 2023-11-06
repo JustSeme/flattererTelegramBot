@@ -10,11 +10,12 @@ import { getWordByNumber } from "../helpers"
 import { BUTTONS_DATA } from "../constants"
 import moment from "moment"
 
-export async function callbackHandler(msg) {
+export async function callbackController(msg) {
     const message = msg.message
     const chatId = message.chat.id
-    let data = msg.data
     const userId = msg.from.id
+    let data = msg.data
+    let responseData
 
     const actualUserState = await UserStateQueryRepository.getUserState(userId)
 
@@ -26,23 +27,9 @@ export async function callbackHandler(msg) {
             if(actualUserState) {
                 switch(actualUserState.messageThread) {
                     case('create_todo'):
-                        const todo: TodoType = {
-                            userId,
-                            chatId: chatId,
-                            firstName: msg.from.first_name,
-                            todoText: actualUserState.todoText,
-                            completed: false,
-                            todoDate: new Date(date),
-                            hourForNotify: +hours,
-                        }
+                        responseData = await TodoService.createTodo(chatId, msg.from.first_name, actualUserState.todoText, date, hours)
 
-                        await TodoService.createTodo(todo)
-
-                        await UserStateService.deleteUserState(userId)
-
-                        const hoursWord = getWordByNumber(hours, ['час', 'часа', 'часов'])
-
-                        return bot.sendMessage(chatId, `Задача создана! Жду не дождусь когда настанет ${date} чтобы в ${hours} ${hoursWord} снова написать тебе.`)
+                        return bot.sendMessage(chatId, responseData.responseText)
                     default:
                         return
                 }
@@ -60,46 +47,13 @@ export async function callbackHandler(msg) {
 
     switch(data) {
         case('show_all_todos'):
-            const todos = await TodosQueryRepository.getTodosByUserId(userId)
-
-            if(!todos.length) {
-                return bot.sendMessage(chatId, 'Никаких задач пока что нет... но я бы очень хотел их создать!')
-            }
-
-            const todosOptions = {
-                reply_markup: {
-                    inline_keyboard: []
-                }
-            }
-
-            for(const todo of todos) {
-                todosOptions.reply_markup.inline_keyboard.push([{ text: todo.todoText, callback_data: `show_todo-${todo._id}` }])
-            }
-
-            const taskWord = getWordByNumber(todos.length, ['задача', 'задачи', 'задач'])
+            responseData = await TodoService.showAllTodos(chatId)
             
-            return bot.sendMessage(chatId, `У тебя ${todos.length} ${taskWord}. Нажми на любую чтобы я дал более точную информацию`, todosOptions)
-        case('create_todo'):
-            const userState: CreateTodoStateType = {
-                userId,
-                todoText: null,
-                todoDate: null,
-                todoTime: null,
-                messageThread: 'create_todo'
-            }
+            return bot.sendMessage(chatId, responseData.responseText, responseData.options)
+        case('start_creating_todo'):
+            responseData = await TodoService.startCreatingTodo(chatId)
 
-            const createTodoOptions: SendMessageOptions = {
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: BUTTONS_DATA.CANCEL_CREATING_TODO_TXT, callback_data: BUTTONS_DATA.CANCEL_CREATING_TODO_CMD },
-                        { text: BUTTONS_DATA.SET_STANDARD_TODO_TEXT_TXT, callback_data: BUTTONS_DATA.SET_STANDARD_TODO_TEXT_CMD }]
-                    ]
-                }
-            }
-
-            await UserStateService.createUserState(userState)
-
-            return bot.sendMessage(chatId, 'Какой будет текст задачи?', createTodoOptions)
+            return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case('cancel_creating_todo'):
             
             await UserStateService.deleteUserState(userId)
@@ -151,6 +105,8 @@ export async function callbackHandler(msg) {
             const formattedDate = moment(todoById.todoDate).format('DD.MM.YYYY')
 
             return bot.sendMessage(chatId, `Текст задачи - ${todoById.todoText} \nДата выполнения - ${formattedDate} \nВремя выполнения - ${todoById.hourForNotify}:00 \n`)
+        case(BUTTONS_DATA.CONTINUE_CREATING_TODO_CMD):
+            return calendar.startNavCalendar(msg)
         default:
             return bot.sendMessage(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
     }

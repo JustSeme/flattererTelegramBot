@@ -1,14 +1,16 @@
 import { UserStateCollection } from "./db"
 import { UserStateType } from "../types/UserStateType"
+import { ObjectId } from "mongodb"
+import { MessageThreadType } from "../types/UserStateType"
 
 export const UserStateRepository = {
     async createUserState(userState: UserStateType) {
         try {
-            await UserStateCollection.insertOne(userState)
-            return true
+            const result = await UserStateCollection.insertOne(userState)
+            return result.insertedId
         } catch (err) {
             console.error(err)
-            return false
+            return null
         }
     },
 
@@ -25,7 +27,7 @@ export const UserStateRepository = {
     async updateUserState(userState: UserStateType) {
         try {
             await UserStateCollection.updateOne(
-                { userId: userState.userId },
+                { chatId: userState.chatId },
                 { $set: { 'todoText': userState.todoText, 'todoDate': userState.todoDate, 'todoTime': userState.todoTime } 
             })
             return true
@@ -33,5 +35,13 @@ export const UserStateRepository = {
             console.error(err)
             return false
         }
+    },
+
+    findUserState(chatId: number, messageThread: MessageThreadType) {
+        return UserStateCollection.findOne({ chatId, messageThread })
+    },
+
+    findUserStateById(userStateId: ObjectId) {
+        return UserStateCollection.findOne({ _id: userStateId })
     }
 }

@@ -19,5 +19,9 @@ export const TodosRepository = {
             console.error(err)
             return -1
         }
-    }
+    },
+
+    async getTodosByUser(userId: number) {
+        return TodosCollection.find({ userId }).toArray()
+    },
 }
