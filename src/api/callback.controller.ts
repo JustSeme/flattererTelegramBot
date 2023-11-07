@@ -1,4 +1,3 @@
-import { UserStateQueryRepository } from "../infrastructure/userState.query-repository"
 import { bot, calendar } from "../main"
 import { UserStateService } from "../application/userState.service"
 import { TodoService } from "../application/todo.serivce"
@@ -10,7 +9,7 @@ export async function callbackController(msg) {
     let data = msg.data
     let responseData
 
-    const actualUserState = await UserStateQueryRepository.getUserState(chatId)
+    const actualUserState = await UserStateService.findUserState(chatId)
 
     if (message.message_id == calendar.chats.get(chatId)) { // select date and time from calendar
         const res = calendar.clickButtonCalendar(msg);
@@ -52,7 +51,7 @@ export async function callbackController(msg) {
             return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case('cancel_creating_todo'):
             
-            await UserStateService.deleteUserState(chatId)
+            await UserStateService.deleteUserState(chatId, 'create_todo')
             
             return bot.sendMessage(chatId, 'Если хочешь, можем и не создавать задачу. У меня ведь ещё есть как тебе угодить!')
         case('delete_todo_text'):
@@ -60,7 +59,7 @@ export async function callbackController(msg) {
 
             return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case('set_standard_todo_text'):
-            responseData = await UserStateService.setStandardTodoText(actualUserState)
+            responseData = await UserStateService.setStandardTodoText(actualUserState._id)
 
             await bot.sendMessage(chatId, responseData.responseText, responseData.options)
             return calendar.startNavCalendar(message)
@@ -82,6 +81,10 @@ export async function callbackController(msg) {
             return bot.sendMessage(chatId, responseData.responseText)
         case(BUTTONS_DATA.CONTINUE_CREATING_TODO_CMD):
             return calendar.startNavCalendar(message)
+        case(BUTTONS_DATA.CHANGE_TODO_TEXT_CMD):
+            responseData = await TodoService.changeTodoText(chatId, todoId)
+
+            return bot.sendMessage(chatId, responseData.responseText)
         default:
             return bot.sendMessage(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
     }

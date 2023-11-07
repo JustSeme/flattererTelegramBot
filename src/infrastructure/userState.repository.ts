@@ -14,9 +14,9 @@ export const UserStateRepository = {
         }
     },
 
-    async deleteUserState(chatId: number) {
+    async deleteUserState(chatId: number, messageThread: MessageThreadType) {
         try {
-            await UserStateCollection.deleteMany({ chatId })
+            await UserStateCollection.deleteOne({ chatId, messageThread })
             return true
         } catch (err) {
             console.error(err)
@@ -24,11 +24,13 @@ export const UserStateRepository = {
         }
     },
 
-    async updateUserState(userState: UserStateType) {
+    async updateStateTodoText(stateId: string | ObjectId, todoText: string) {
         try {
+            const _id = new ObjectId(stateId)
+
             await UserStateCollection.updateOne(
-                { chatId: userState.chatId },
-                { $set: { 'todoText': userState.todoText, 'todoDate': userState.todoDate, 'todoTime': userState.todoTime } 
+                { _id },
+                { $set: { todoText} 
             })
             return true
         } catch (err) {
@@ -37,11 +39,15 @@ export const UserStateRepository = {
         }
     },
 
-    findUserState(chatId: number, messageThread: MessageThreadType) {
+    findUserStateByThread(chatId: number, messageThread: MessageThreadType, todoId: string) {
         return UserStateCollection.findOne({ chatId, messageThread })
     },
 
-    findUserStateById(userStateId: ObjectId) {
+    findUserState(chatId: number) {
+        return UserStateCollection.findOne({ chatId })
+    },
+
+    findUserStateByThreadById(userStateId: ObjectId) {
         return UserStateCollection.findOne({ _id: userStateId })
     }
 }

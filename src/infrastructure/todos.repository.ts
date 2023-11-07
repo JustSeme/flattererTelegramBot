@@ -34,6 +34,17 @@ export const TodosRepository = {
         }
     },
 
+    async changeTodoText(todoId: string, newText: string) {
+        try {
+            const _id = new ObjectId(todoId)
+            const result = await TodosCollection.updateOne({ _id }, { $set: { todoText: newText } })
+            return result.modifiedCount === 1
+        } catch (err) {
+            console.error(err)
+            return false
+        }
+    },
+
     async getTodosByUser(chatId: number) {
         return TodosCollection.find({ chatId }).toArray()
     },

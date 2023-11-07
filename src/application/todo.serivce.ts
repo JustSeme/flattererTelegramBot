@@ -7,6 +7,7 @@ import { UserStateService } from "./userState.service"
 import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS, RESPONSE_WARNS } from "../constants"
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import moment from "moment"
+import { WithId } from "mongodb"
 
 export const TodoService = {
     async createTodo(chatId: number, first_name: string, todoText: string, date: string, hours: string) {
@@ -19,7 +20,7 @@ export const TodoService = {
             hourForNotify: +hours,
         }
 
-        await UserStateService.deleteUserState(chatId)
+        await UserStateService.deleteUserState(chatId, 'create_todo')
 
         await TodosRepository.createTodo(todo)
 
@@ -95,7 +96,7 @@ export const TodoService = {
         return { responseText: `Твоя воля - закон. Хотя это печально, что мне пришлось удалить ${deletedCount} ${word}` }
     },
 
-    async deleteTodoText(actualUserState: UserStateType, username: string) {
+    async deleteTodoText(actualUserState: WithId<UserStateType>, username: string) {
         if(!actualUserState || !actualUserState.todoText) {
             const stateNotExistsText = !actualUserState 
             ? `Понял вас, благородный ${username}. Однако, в текущий момент вы не создаёте задач, и, следовательно, нет необходимости в удаление её текста. Всегда готов служить вашим великим поручениям!`
@@ -103,9 +104,7 @@ export const TodoService = {
             return { responseText: stateNotExistsText }
         }
 
-        actualUserState.todoText = null
-
-        await UserStateRepository.updateUserState(actualUserState)
+        await UserStateRepository.updateStateTodoText(actualUserState._id, null)
 
         const deleteTodoOptions: SendMessageOptions = {
             reply_markup: {
@@ -130,7 +129,9 @@ export const TodoService = {
         
         const showTodoOptions = {
             reply_markup: {
-                inline_keyboard: []
+                inline_keyboard: [
+                    [{ text: BUTTONS_DATA.CHANGE_TODO_TEXT_TXT, callback_data: BUTTONS_DATA.CHANGE_TODO_TEXT_CMD }]
+                ]
             }
         }
 
@@ -164,5 +165,11 @@ export const TodoService = {
         }
 
         return { responseText: completed ? RESPONSE_TEXTS.COMPLETED_TODO : RESPONSE_TEXTS.UNCOMPLETED_TODO }
-    } 
+    },
+
+    async changeTodoText(chatId: number, todoId: string) {
+        await UserStateService.findOrCreateUserState(chatId, 'change_todo_text', todoId)
+
+        return { responseText: RESPONSE_TEXTS.CHANGE_TODO_TEXT_STATE_CREATED }
+    }
 }

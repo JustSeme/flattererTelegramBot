@@ -1,10 +1,9 @@
 import { SendMessageOptions } from "node-telegram-bot-api"
-import { BUTTONS_DATA } from "../constants"
-import { getTimeOfDay } from "../helpers"
+import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS } from "../constants"
 import { ComplimentsRepository } from "../infrastructure/compliments.repository"
 import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
-import { UserStateQueryRepository } from "../infrastructure/userState.query-repository"
 import { UserStateRepository } from "../infrastructure/userState.repository"
+import { TodosRepository } from "../infrastructure/todos.repository"
 
 export const CommandsService = {
     start(): { stickerURL: string, responseText: string } {
@@ -45,7 +44,7 @@ export const CommandsService = {
     },
 
     async defaultCommand(chatId: number, recivedText: string) {
-        const userState = await UserStateQueryRepository.getUserState(chatId)
+        const userState = await UserStateRepository.findUserState(chatId)
 
             if(!userState) {
                 return { responseText: 'Простите, я не совсем понимаю ваш запрос. Мой фокус - помогать вам с задачами. Если нужна помощь, просто скажите, и я сделаю всё возможное, чтобы помочь вам.' }
@@ -54,8 +53,7 @@ export const CommandsService = {
             switch(userState.messageThread) {
                 case('create_todo'):
                     if(!userState.todoText) {
-                        userState.todoText = recivedText
-                        await UserStateRepository.updateUserState(userState)
+                        await UserStateRepository.updateStateTodoText(userState._id, recivedText)
 
                         const updateTodoTextOptions: SendMessageOptions = {
                             reply_markup: {
@@ -70,6 +68,19 @@ export const CommandsService = {
                             options: updateTodoTextOptions,
                             isShowCalendar: true
                         }
+                    }
+                case('change_todo_text'):
+                    //@ts-ignore in this case todoId exists in userState
+                    const isChanged = await TodosRepository.changeTodoText(userState.todoId, recivedText)
+
+                    if(!isChanged) {
+                        return { responseText: RESPONSE_ERRORS.SOMETHING_WRONG}
+                    }
+
+                    await UserStateRepository.deleteUserState(chatId, 'change_todo_text')
+                    
+                    return {
+                        responseText: RESPONSE_TEXTS.TEXT_TODO_CHANGED
                     }
             }
     }

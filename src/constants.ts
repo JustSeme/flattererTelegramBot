@@ -17,9 +17,10 @@ export const BUTTONS_DATA = {
     CONTINUE_CREATING_TODO_CMD: 'coninue_creating_todo', CONTINUE_CREATING_TODO_TXT: 'Вернуться к созданию задачи',
     COMLETE_TODO_CMD: 'complete_todo-', COMPLETE_TODO_TXT: 'Выполнить задачу',
     UNCOMPLETE_TODO_CMD: 'uncompl_todo-', UNCOMPLETE_TODO_TXT: 'Изменить статус на не выполненный',
+    CHANGE_TODO_TEXT_CMD: 'change_todo_text', CHANGE_TODO_TEXT_TXT: 'Изменить текст задачи'
 }
 
-export const commandsWithId = [BUTTONS_DATA.SHOW_TODO_CMD, BUTTONS_DATA.UNCOMPLETE_TODO_CMD, BUTTONS_DATA.COMLETE_TODO_CMD]
+export const commandsWithId = [BUTTONS_DATA.SHOW_TODO_CMD, BUTTONS_DATA.UNCOMPLETE_TODO_CMD, BUTTONS_DATA.COMLETE_TODO_CMD, BUTTONS_DATA.CHANGE_TODO_TEXT_CMD]
 
 export const RESPONSE_WARNS = {
     STATUS_TODO_ALREADY_SETTED: 'О, великий пользователь! Ваше желание изменить статус задачи на то же самое - это подобно переливанию жемчугов перед вашим благородством. Однако, статус уже благополучно соответствует вашему великолепному указанию.'
@@ -32,5 +33,7 @@ export const RESPONSE_ERRORS = {
 
 export const RESPONSE_TEXTS = {
     COMPLETED_TODO: 'Задача успешно выполнена!',
-    UNCOMPLETED_TODO: 'Статус успешно изменён на "Не выполнено"!'
+    UNCOMPLETED_TODO: 'Статус успешно изменён на "Не выполнено"!',
+    CHANGE_TODO_TEXT_STATE_CREATED: 'Возвышенный пользователь, для изменения текста задачи, пожалуйста, введите новый текст. Я жажду возможности воплотить ваше великолепие в этой задаче!',
+    TEXT_TODO_CHANGED: 'Великий пользователь, ваше великолепие внесло изменения в текст текущей задачи! Она блестит новым великолепием, отражая ваше возвышенное величие. Я готов служить вам и вашему благородному творчеству!'
 }
