@@ -38,7 +38,7 @@ export const TodosRepository = {
         try {
             const _id = new ObjectId(todoId)
             const result = await TodosCollection.updateOne({ _id }, { $set: { todoText: newText } })
-            return result.modifiedCount === 1
+            return result.matchedCount === 1
         } catch (err) {
             console.error(err)
             return false

@@ -130,7 +130,7 @@ export const TodoService = {
         const showTodoOptions = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: BUTTONS_DATA.CHANGE_TODO_TEXT_TXT, callback_data: BUTTONS_DATA.CHANGE_TODO_TEXT_CMD }]
+                    [{ text: BUTTONS_DATA.CHANGE_TODO_TEXT_TXT, callback_data: BUTTONS_DATA.CHANGE_TODO_TEXT_CMD + todoId }]
                 ]
             }
         }

@@ -16,7 +16,7 @@ export const UserStateRepository = {
 
     async deleteUserState(chatId: number, messageThread: MessageThreadType) {
         try {
-            await UserStateCollection.deleteOne({ chatId, messageThread })
+            await UserStateCollection.deleteMany({ chatId, messageThread })
             return true
         } catch (err) {
             console.error(err)
@@ -40,7 +40,20 @@ export const UserStateRepository = {
     },
 
     findUserStateByThread(chatId: number, messageThread: MessageThreadType, todoId: string) {
-        return UserStateCollection.findOne({ chatId, messageThread })
+        const filterObj: any = {
+            chatId,
+            messageThread,
+        }
+        
+        if(messageThread === 'change_todo_text') {
+            filterObj.todoId = todoId
+        }
+
+        return UserStateCollection.findOne(filterObj)
+    },
+
+    async deleteAllUserStates(chatId: number) {
+        await UserStateCollection.deleteMany({ chatId })
     },
 
     findUserState(chatId: number) {

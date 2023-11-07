@@ -78,9 +78,18 @@ export const CommandsService = {
                     }
 
                     await UserStateRepository.deleteUserState(chatId, 'change_todo_text')
+
+                    const showAllTodosOptions = {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: BUTTONS_DATA.SHOW_ALL_TODOS_TXT, callback_data: BUTTONS_DATA.SHOW_ALL_TODOS_CMD}],
+                            ]
+                        }
+                    }
                     
                     return {
-                        responseText: RESPONSE_TEXTS.TEXT_TODO_CHANGED
+                        responseText: RESPONSE_TEXTS.TEXT_TODO_CHANGED,
+                        options: showAllTodosOptions
                     }
             }
     }

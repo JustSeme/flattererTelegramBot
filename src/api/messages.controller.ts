@@ -2,6 +2,7 @@ import { SendMessageOptions } from "node-telegram-bot-api"
 import { CommandsService } from "../application/commands.service"
 import { bot, calendar } from "../main"
 import { BUTTONS_DATA } from "../constants"
+import { UserStateRepository } from "../infrastructure/userState.repository"
 
 export async function messagesController(msg) {
     const chatId = msg.chat.id
@@ -28,15 +29,9 @@ export async function messagesController(msg) {
             return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         // for test
         case '/del-thread':
-            const createTodoOptions: SendMessageOptions = {
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: BUTTONS_DATA.CANCEL_CREATING_TODO_TXT, callback_data: BUTTONS_DATA.CANCEL_CREATING_TODO_CMD }],
-                        [{ text: 'delete todo text', callback_data: BUTTONS_DATA.DELETE_TODO_TEXT_CMD }]
-                    ]
-                }
-            }
-            return bot.sendMessage(chatId, 'kek', createTodoOptions)
+            await UserStateRepository.deleteAllUserStates(chatId)
+
+            return bot.sendMessage(chatId, 'kek')
         default:
             responseData = await CommandsService.defaultCommand(chatId, recivedText)
 
