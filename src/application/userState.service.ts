@@ -3,12 +3,8 @@ import { UserStateType } from "../types/UserStateType"
 import { MessageThreadType } from "../types/UserStateType"
 
 export const UserStateService = {
-    async deleteUserState(userId: number) {
-        return UserStateRepository.deleteUserState(userId)
-    },
-
-    async updateUserState(userState: UserStateType) {
-        return UserStateRepository.updateUserState(userState)
+    async deleteUserState(chatId: number) {
+        return UserStateRepository.deleteUserState(chatId)
     },
     
     async findOrCreateUserState(chatId: number, messageThread: MessageThreadType) {
@@ -29,5 +25,15 @@ export const UserStateService = {
         }
 
         return userState
+    },
+
+    async setStandardTodoText(actualUserState: UserStateType) {
+        // here will be get standard user text
+        const standardText = 'Сделать возможность изменять стандартный текст для пользователя'
+        actualUserState.todoText = standardText
+
+        await UserStateRepository.updateUserState(actualUserState)
+
+        return { responseText: `Всё ради тебя! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?` }
     }
 }

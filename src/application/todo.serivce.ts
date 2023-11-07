@@ -2,9 +2,11 @@ import { SendMessageOptions } from "node-telegram-bot-api"
 import { getWordByNumber } from "../helpers"
 import { TodosRepository } from "../infrastructure/todos.repository"
 import { TodoType } from "../types/TodoType"
-import { CreateTodoStateType, UserStateType } from "../types/UserStateType"
+import { UserStateType } from "../types/UserStateType"
 import { UserStateService } from "./userState.service"
 import { BUTTONS_DATA } from "../constants"
+import { UserStateRepository } from "../infrastructure/userState.repository"
+import moment from "moment"
 
 export const TodoService = {
     async createTodo(chatId: number, first_name: string, todoText: string, date: string, hours: string) {
@@ -19,7 +21,7 @@ export const TodoService = {
 
         await UserStateService.deleteUserState(chatId)
 
-        await TodosRepository.createTodo(todo)
+        const res = await TodosRepository.createTodo(todo)
 
         const hoursWord = getWordByNumber(+hours, ['час', 'часа', 'часов'])
 
@@ -81,7 +83,47 @@ export const TodoService = {
         return { responseText: 'Какой будет текст задачи?', options: createTodoOptions }
     },
 
-    deleteAllTodos(userId: number): Promise<number> {
-        return TodosRepository.deleteAllTodos(userId)
+    async deleteAllTodos(chatId: number) {
+        const deletedCount = await TodosRepository.deleteAllTodos(chatId)
+
+        if(deletedCount < 0) {
+            return { responseText: 'Что-то пошло не по плану :-/' }
+        }
+        
+        const word = getWordByNumber(deletedCount, ['задачу', 'задачи', 'задач'])
+
+        return { responseText: `Твоя воля - закон. Хотя это печально, что мне пришлось удалить ${deletedCount} ${word}` }
+    },
+
+    async deleteTodoText(actualUserState: UserStateType) {
+        if(!actualUserState || !actualUserState.todoText) {
+            const stateNotExistsText = !actualUserState ? 'Извини, но ты сейчас не создаёшь никаких задач' : 'Текст для задачи и так отсутствует'
+            return { responseText: stateNotExistsText }
+        }
+
+        actualUserState.todoText = null
+
+        await UserStateRepository.updateUserState(actualUserState)
+
+        const deleteTodoOptions: SendMessageOptions = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: BUTTONS_DATA.CANCEL_CREATING_TODO_TXT, callback_data: BUTTONS_DATA.CANCEL_CREATING_TODO_CMD }]
+                ]
+            }
+        }
+
+        return { responseText: 'Отлично, старый текст задачи удалён. Пожалуйста, введи новый', options: deleteTodoOptions }
+    },
+
+    async showTodo(todoId: string) {
+        const todoById = await TodosRepository.getTodoById(todoId)
+
+        if(!todoById) {
+            return { responseText: 'Что-то пошло не по плану - не могу найти эту задачу.' }
+        }
+        const formattedDate = moment(todoById.todoDate).format('DD.MM.YYYY')
+
+        return { responseText: `Текст задачи - ${todoById.todoText} \nДата выполнения - ${formattedDate} \nВремя выполнения - ${todoById.hourForNotify}:00 \n` }
     }
 }

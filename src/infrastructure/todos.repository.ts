@@ -1,5 +1,6 @@
 import { TodoType } from "../types/TodoType"
 import { TodosCollection } from "./db"
+import { ObjectId } from "mongodb"
 
 export const TodosRepository = {
     async createTodo(todo: TodoType) {
@@ -11,9 +12,9 @@ export const TodosRepository = {
         }
     },
 
-    async deleteAllTodos(userId: number): Promise<number> {
+    async deleteAllTodos(chatId: number): Promise<number> {
         try {
-            const deleteResult = await TodosCollection.deleteMany({ userId })
+            const deleteResult = await TodosCollection.deleteMany({ chatId })
             return deleteResult.deletedCount
         } catch (err) {
             console.error(err)
@@ -21,7 +22,12 @@ export const TodosRepository = {
         }
     },
 
-    async getTodosByUser(userId: number) {
-        return TodosCollection.find({ userId }).toArray()
+    async getTodosByUser(chatId: number) {
+        return TodosCollection.find({ chatId }).toArray()
+    },
+
+    async getTodoById(todoId: string) {
+        const _id = new ObjectId(todoId)
+        return TodosCollection.findOne({ _id })
     },
 }

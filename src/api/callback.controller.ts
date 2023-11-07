@@ -1,8 +1,6 @@
 import { UserStateQueryRepository } from "../infrastructure/userState.query-repository"
 import { SendMessageOptions } from "node-telegram-bot-api"
-import { TodoType } from "../types/TodoType"
 import { bot, calendar } from "../main"
-import { CreateTodoStateType } from "../types/UserStateType"
 import { UserStateService } from "../application/userState.service"
 import { TodoService } from "../application/todo.serivce"
 import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
@@ -13,11 +11,10 @@ import moment from "moment"
 export async function callbackController(msg) {
     const message = msg.message
     const chatId = message.chat.id
-    const userId = msg.from.id
     let data = msg.data
     let responseData
 
-    const actualUserState = await UserStateQueryRepository.getUserState(userId)
+    const actualUserState = await UserStateQueryRepository.getUserState(chatId)
 
     if (message.message_id == calendar.chats.get(chatId)) { // select date and time from calendar
         const res = calendar.clickButtonCalendar(msg);
@@ -56,57 +53,28 @@ export async function callbackController(msg) {
             return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case('cancel_creating_todo'):
             
-            await UserStateService.deleteUserState(userId)
+            await UserStateService.deleteUserState(chatId)
             
             return bot.sendMessage(chatId, 'Если хочешь, можем и не создавать задачу. У меня ведь ещё есть как тебе угодить!')
         case('delete_todo_text'):
-            if(!actualUserState || !actualUserState.todoText) {
-                const stateNotExistsText = !actualUserState ? 'Извини, господин, но ты сейчас не создаёшь никаких задач' : 'Текст для задачи и так отсутствует'
-                return bot.sendMessage(chatId, stateNotExistsText)
-            }
+            responseData = await TodoService.deleteTodoText(actualUserState)
 
-            actualUserState.todoText = null
-
-            await UserStateService.updateUserState(actualUserState)
-
-            const deleteTodoOptions: SendMessageOptions = {
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: BUTTONS_DATA.CANCEL_CREATING_TODO_TXT, callback_data: BUTTONS_DATA.CANCEL_CREATING_TODO_CMD }]
-                    ]
-                }
-            }
-            return bot.sendMessage(chatId, 'Отлично, старый текст задачи удалён. Пожалуйста, введи новый', deleteTodoOptions)
+            return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case('set_standard_todo_text'):
+            responseData = await UserStateService.setStandardTodoText(actualUserState)
 
-            const standardText = 'Сделать возможность изменять стандартный текст для пользователя'
-            actualUserState.todoText = standardText
-
-            await UserStateService.updateUserState(actualUserState)
-
-            await bot.sendMessage(chatId, `Всё ради тебя! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?`)
+            await bot.sendMessage(chatId, responseData.responseText)
             return calendar.startNavCalendar(message)
         case('delete_all_todos'):
-            const deletedCount = await TodoService.deleteAllTodos(userId)
+            responseData = await TodoService.deleteAllTodos(chatId)
 
-            if(deletedCount < 0) {
-                return bot.sendMessage(chatId, 'Что-то пошло не по плану :-/')
-            }
-            
-            const word = getWordByNumber(deletedCount, ['задачу', 'задачи', 'задач'])
-
-            return bot.sendMessage(chatId, `Твоя воля - закон. Хотя это печально, что мне пришлось удалить ${deletedCount} ${word}`)
+            return bot.sendMessage(chatId, responseData.responseText)
         case('show_todo'):
-            const todoById = await TodosQueryRepository.getTodoById(todoId)
+            responseData = await TodoService.showTodo(todoId)
 
-            if(!todoById) {
-                return bot.sendMessage(chatId, 'Что-то пошло не по плану - не могу найти эту задачу.')
-            }
-            const formattedDate = moment(todoById.todoDate).format('DD.MM.YYYY')
-
-            return bot.sendMessage(chatId, `Текст задачи - ${todoById.todoText} \nДата выполнения - ${formattedDate} \nВремя выполнения - ${todoById.hourForNotify}:00 \n`)
+            return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case(BUTTONS_DATA.CONTINUE_CREATING_TODO_CMD):
-            return calendar.startNavCalendar(msg)
+            return calendar.startNavCalendar(message)
         default:
             return bot.sendMessage(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
     }

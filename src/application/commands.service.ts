@@ -4,7 +4,7 @@ import { getTimeOfDay } from "../helpers"
 import { ComplimentsRepository } from "../infrastructure/compliments.repository"
 import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
 import { UserStateQueryRepository } from "../infrastructure/userState.query-repository"
-import { UserStateService } from "./userState.service"
+import { UserStateRepository } from "../infrastructure/userState.repository"
 
 export const CommandsService = {
     start(): { stickerURL: string, responseText: string } {
@@ -32,7 +32,7 @@ export const CommandsService = {
                 ]
             }
         }
-        const todosCount = await TodosQueryRepository.getTodosCountByUserId(chatId)
+        const todosCount = await TodosQueryRepository.getTodosCountByUser(chatId)
 
         if(todosCount > 0) {
             todoOptions.reply_markup.inline_keyboard.push([{ text: BUTTONS_DATA.DELETE_ALL_TODOS_TXT, callback_data: BUTTONS_DATA.DELETE_ALL_TODOS_CMD }])
@@ -55,7 +55,7 @@ export const CommandsService = {
                 case('create_todo'):
                     if(!userState.todoText) {
                         userState.todoText = recivedText
-                        await UserStateService.updateUserState(userState)
+                        await UserStateRepository.updateUserState(userState)
 
                         const updateTodoTextOptions: SendMessageOptions = {
                             reply_markup: {

@@ -6,7 +6,6 @@ import { BUTTONS_DATA } from "../constants"
 export async function messagesController(msg) {
     const chatId = msg.chat.id
     const recivedText = msg.text
-    const userId = msg.from.id
     let responseData
 
     switch(recivedText) {
@@ -24,7 +23,7 @@ export async function messagesController(msg) {
 
             return bot.sendMessage(chatId, responseData.responseText)
         case '/todo':
-            responseData = await CommandsService.todoCommand(userId)
+            responseData = await CommandsService.todoCommand(chatId)
 
             return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         // for test
@@ -41,11 +40,7 @@ export async function messagesController(msg) {
             responseData = await CommandsService.defaultCommand(chatId, recivedText)
 
             if(responseData.responseText) {
-                if(responseData.options) {
-                    await bot.sendMessage(chatId, responseData.responseText, responseData.options)
-                } else {
-                    await bot.sendMessage(chatId, responseData.responseText)
-                }
+                await bot.sendMessage(chatId, responseData.responseText, responseData.options)
             }
 
             if(responseData.isShowCalendar) {
