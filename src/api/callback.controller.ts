@@ -1,12 +1,8 @@
 import { UserStateQueryRepository } from "../infrastructure/userState.query-repository"
-import { SendMessageOptions } from "node-telegram-bot-api"
 import { bot, calendar } from "../main"
 import { UserStateService } from "../application/userState.service"
 import { TodoService } from "../application/todo.serivce"
-import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
-import { getWordByNumber } from "../helpers"
-import { BUTTONS_DATA } from "../constants"
-import moment from "moment"
+import { BUTTONS_DATA, commandsWithId } from "../constants"
 
 export async function callbackController(msg) {
     const message = msg.message
@@ -37,10 +33,13 @@ export async function callbackController(msg) {
     }
 
     let todoId = ''
-    if(data.indexOf('show_todo-') > -1) {
-        todoId = data.split('-')[1]
-        data = 'show_todo'
-    }
+    commandsWithId.some(cmd => {
+        if(data.includes(cmd)) {
+            todoId = data.split('-')[1]
+            data = cmd
+        }
+    })
+    
 
     switch(data) {
         case('show_all_todos'):
@@ -57,22 +56,30 @@ export async function callbackController(msg) {
             
             return bot.sendMessage(chatId, 'Если хочешь, можем и не создавать задачу. У меня ведь ещё есть как тебе угодить!')
         case('delete_todo_text'):
-            responseData = await TodoService.deleteTodoText(actualUserState)
+            responseData = await TodoService.deleteTodoText(actualUserState, msg.from.username)
 
             return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case('set_standard_todo_text'):
             responseData = await UserStateService.setStandardTodoText(actualUserState)
 
-            await bot.sendMessage(chatId, responseData.responseText)
+            await bot.sendMessage(chatId, responseData.responseText, responseData.options)
             return calendar.startNavCalendar(message)
         case('delete_all_todos'):
             responseData = await TodoService.deleteAllTodos(chatId)
 
             return bot.sendMessage(chatId, responseData.responseText)
-        case('show_todo'):
+        case(BUTTONS_DATA.SHOW_TODO_CMD):
             responseData = await TodoService.showTodo(todoId)
 
             return bot.sendMessage(chatId, responseData.responseText, responseData.options)
+        case(BUTTONS_DATA.COMLETE_TODO_CMD):
+            responseData = await TodoService.changeCompleted(todoId, true)
+
+            return bot.sendMessage(chatId, responseData.responseText)
+        case(BUTTONS_DATA.UNCOMPLETE_TODO_CMD):
+            responseData = await TodoService.changeCompleted(todoId, false)
+
+            return bot.sendMessage(chatId, responseData.responseText)
         case(BUTTONS_DATA.CONTINUE_CREATING_TODO_CMD):
             return calendar.startNavCalendar(message)
         default:

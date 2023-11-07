@@ -15,7 +15,7 @@ export async function messagesController(msg) {
             await bot.sendSticker(chatId, responseData.stickerURL)
             return bot.sendMessage(chatId, responseData.responseText)
         case '/info': 
-            responseData = CommandsService.info(msg.date, msg.chat.username)
+            responseData = CommandsService.info(msg.chat.username)
 
             return bot.sendMessage(chatId, responseData.responseText)
         case '/compliment':
@@ -31,7 +31,8 @@ export async function messagesController(msg) {
             const createTodoOptions: SendMessageOptions = {
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: BUTTONS_DATA.CANCEL_CREATING_TODO_TXT, callback_data: BUTTONS_DATA.CANCEL_CREATING_TODO_CMD }]
+                        [{ text: BUTTONS_DATA.CANCEL_CREATING_TODO_TXT, callback_data: BUTTONS_DATA.CANCEL_CREATING_TODO_CMD }],
+                        [{ text: 'delete todo text', callback_data: BUTTONS_DATA.DELETE_TODO_TEXT_CMD }]
                     ]
                 }
             }

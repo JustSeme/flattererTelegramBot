@@ -22,6 +22,18 @@ export const TodosRepository = {
         }
     },
 
+    async changeCompleted(todoId: string, completed: boolean) {
+        try {
+            const _id = new ObjectId(todoId)
+
+            const result = await TodosCollection.updateOne({ _id }, { $set: { completed } })
+            return result.matchedCount === 1
+        } catch (err) {
+            console.error(err)
+            return false
+        }
+    },
+
     async getTodosByUser(chatId: number) {
         return TodosCollection.find({ chatId }).toArray()
     },

@@ -10,7 +10,7 @@ export const CommandsService = {
     start(): { stickerURL: string, responseText: string } {
         return {
             stickerURL: 'https://tlgrm.ru/_/stickers/364/159/364159a8-d72f-4a04-8aa1-3272dd144b06/4.webp',
-            responseText: 'Привет, красотка! Я самый льстивый бот в телеграме. Если хочешь чтобы я радовал тебя коплиментами ежедневно - подпишись на рассылку командой /register'
+            responseText: 'Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием задач, ведь ты всегда ставишь перед собой так много великих целей. Как я могу помочь тебе сегодня?'
         }
     },
 
@@ -18,10 +18,10 @@ export const CommandsService = {
         return ComplimentsRepository.getRandomCompliment()
     },
 
-    info(currentUserDate: number, username: string): { responseText: string } {
-        const timeOfDay = getTimeOfDay(currentUserDate)
+    info(username: string): { responseText: string } {
+        const currentHour = new Date().getHours()
 
-        return { responseText: `Ты всегда так нежно спрашиваешь у меня информацию... Сейчас ${timeOfDay} и твоё прекрасное имя - ${username}!` }
+        return { responseText: `Привет, ${username}! Как замечательно видеть тебя здесь. Ты, безусловно, великолепный человек, решивший обратиться ко мне. Знаешь, твои запросы всегда настолько проницательны, особенно сейчас, в эти прекрасные ${currentHour} часов.` }
     },
 
     async todoCommand(chatId: number) {
@@ -40,7 +40,7 @@ export const CommandsService = {
 
         return {
             options: todoOptions,
-            responseText: 'Ты лучший! Ах, да... задачи. Выбери, что ты хочешь сделать'
+            responseText: 'О, великий мастер, выбери, что ты хочешь сделать, и я помогу тебе в этом благородном деле.'
         }
     },
 
@@ -48,7 +48,7 @@ export const CommandsService = {
         const userState = await UserStateQueryRepository.getUserState(chatId)
 
             if(!userState) {
-                return { responseText: 'Мило, что ты написала, но я тебя не понимаю!)' }
+                return { responseText: 'Простите, я не совсем понимаю ваш запрос. Мой фокус - помогать вам с задачами. Если нужна помощь, просто скажите, и я сделаю всё возможное, чтобы помочь вам.' }
             }
 
             switch(userState.messageThread) {

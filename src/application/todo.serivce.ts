@@ -4,7 +4,7 @@ import { TodosRepository } from "../infrastructure/todos.repository"
 import { TodoType } from "../types/TodoType"
 import { UserStateType } from "../types/UserStateType"
 import { UserStateService } from "./userState.service"
-import { BUTTONS_DATA } from "../constants"
+import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS, RESPONSE_WARNS } from "../constants"
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import moment from "moment"
 
@@ -21,7 +21,7 @@ export const TodoService = {
 
         await UserStateService.deleteUserState(chatId)
 
-        const res = await TodosRepository.createTodo(todo)
+        await TodosRepository.createTodo(todo)
 
         const hoursWord = getWordByNumber(+hours, ['час', 'часа', 'часов'])
 
@@ -32,7 +32,7 @@ export const TodoService = {
         const todos = await TodosRepository.getTodosByUser(chatId)
 
         if(!todos.length) {
-            return { responseText: 'Никаких задач пока что нет... но я бы очень хотел их создать!' }
+            return { responseText: 'Похоже, у тебя еще нет задач. Но не волнуйся, ведь самое интересное только начинается! Давай создадим твои первые задачи вместе.' }
         }
 
         const todosOptions = {
@@ -42,12 +42,12 @@ export const TodoService = {
         }
 
         for(const todo of todos) {
-            todosOptions.reply_markup.inline_keyboard.push([{ text: todo.todoText, callback_data: `show_todo-${todo._id}` }])
+            todosOptions.reply_markup.inline_keyboard.push([{ text: todo.todoText, callback_data: BUTTONS_DATA.SHOW_TODO_CMD + todo._id }])
         }
 
         const taskWord = getWordByNumber(todos.length, ['задача', 'задачи', 'задач'])
 
-        return { responseText: `У тебя ${todos.length} ${taskWord}. Нажми на любую чтобы я дал более точную информацию`, options: todosOptions }
+        return { responseText: `У тебя есть ${todos.length} ${taskWord} в списке. Выбери нужную задачу для более подробной информации.`, options: todosOptions }
     },
 
     async startCreatingTodo(chatId: number) {
@@ -68,7 +68,7 @@ export const TodoService = {
                 }
             }
 
-            return { responseText: `Вы ведь не забыли, что мы уже создаём задачу с текстом ${userState.todoText}?`, options: todoTextExistsOptions }
+            return { responseText: `Понял, что ты хочешь еще раз создать задачу. Однако, ты уже начал создавать задачу - "${userState.todoText}", но не указал дату и время выполнения.`, options: todoTextExistsOptions }
         }
 
         const createTodoOptions: SendMessageOptions = {
@@ -80,14 +80,14 @@ export const TodoService = {
             }
         }
 
-        return { responseText: 'Какой будет текст задачи?', options: createTodoOptions }
+        return { responseText: 'Отлично! Какой текст твоей новой задачи?', options: createTodoOptions }
     },
 
     async deleteAllTodos(chatId: number) {
         const deletedCount = await TodosRepository.deleteAllTodos(chatId)
 
         if(deletedCount < 0) {
-            return { responseText: 'Что-то пошло не по плану :-/' }
+            return { responseText: RESPONSE_ERRORS.SOMETHING_WRONG }
         }
         
         const word = getWordByNumber(deletedCount, ['задачу', 'задачи', 'задач'])
@@ -95,9 +95,11 @@ export const TodoService = {
         return { responseText: `Твоя воля - закон. Хотя это печально, что мне пришлось удалить ${deletedCount} ${word}` }
     },
 
-    async deleteTodoText(actualUserState: UserStateType) {
+    async deleteTodoText(actualUserState: UserStateType, username: string) {
         if(!actualUserState || !actualUserState.todoText) {
-            const stateNotExistsText = !actualUserState ? 'Извини, но ты сейчас не создаёшь никаких задач' : 'Текст для задачи и так отсутствует'
+            const stateNotExistsText = !actualUserState 
+            ? `Понял вас, благородный ${username}. Однако, в текущий момент вы не создаёте задач, и, следовательно, нет необходимости в удаление её текста. Всегда готов служить вашим великим поручениям!`
+            : `Понял вас, благородный ${username}. Однако, в текущий момент текст задачи отсутствует, и, следовательно, нет необходимости в её удалении. Всегда готов служить вашим великим поручениям!`
             return { responseText: stateNotExistsText }
         }
 
@@ -113,17 +115,54 @@ export const TodoService = {
             }
         }
 
-        return { responseText: 'Отлично, старый текст задачи удалён. Пожалуйста, введи новый', options: deleteTodoOptions }
+        return { responseText: 'Ваше великолепие, текст задачи благополучно удалён! Однако, ваше величие не оставит нас без новой блистательной задачи. Пожалуйста, раскройте свой ум и введите новый текст задачи для продолжения благородного творчества!', options: deleteTodoOptions }
     },
 
     async showTodo(todoId: string) {
         const todoById = await TodosRepository.getTodoById(todoId)
 
         if(!todoById) {
-            return { responseText: 'Что-то пошло не по плану - не могу найти эту задачу.' }
+            return { responseText: RESPONSE_ERRORS.DOES_NOT_EXISTS_TODO }
         }
         const formattedDate = moment(todoById.todoDate).format('DD.MM.YYYY')
 
-        return { responseText: `Текст задачи - ${todoById.todoText} \nДата выполнения - ${formattedDate} \nВремя выполнения - ${todoById.hourForNotify}:00 \n` }
-    }
+        let todoCompletedEmoj: string
+        
+        const showTodoOptions = {
+            reply_markup: {
+                inline_keyboard: []
+            }
+        }
+
+        if(todoById.completed) {
+            todoCompletedEmoj = '✅'
+            showTodoOptions.reply_markup.inline_keyboard.push([{ text: BUTTONS_DATA.UNCOMPLETE_TODO_TXT, callback_data: BUTTONS_DATA.UNCOMPLETE_TODO_CMD + todoId }])
+        } else {
+            todoCompletedEmoj = '❌'
+            showTodoOptions.reply_markup.inline_keyboard.push([{ text: BUTTONS_DATA.COMPLETE_TODO_TXT, callback_data: BUTTONS_DATA.COMLETE_TODO_CMD + todoId }])
+        }
+        
+
+        return { responseText: `Текст задачи: ${todoById.todoText}\n\nДата выполнения: ${formattedDate}\n\nВремя выполнения: ${todoById.hourForNotify}:00\n\nВыполнена:  ${todoCompletedEmoj}\n\nЭта блестящая задача требует вашего великого внимания и благородного усердия. Пожалуйста, не забудьте принять вызов вашего гения и великолепия!`, options: showTodoOptions }
+    },
+
+    async changeCompleted(todoId: string, completed: boolean) {
+        const todoById = await TodosRepository.getTodoById(todoId)
+
+        if(!todoById) {
+            return { responseText: RESPONSE_ERRORS.DOES_NOT_EXISTS_TODO }
+        }
+
+        if(todoById.completed === completed) {
+            return { responseText: RESPONSE_WARNS.STATUS_TODO_ALREADY_SETTED }
+        }
+
+        const isUpdated = await TodosRepository.changeCompleted(todoId, completed)
+
+        if(!isUpdated) {
+            return { responseText: RESPONSE_ERRORS.SOMETHING_WRONG }
+        }
+
+        return { responseText: completed ? RESPONSE_TEXTS.COMPLETED_TODO : RESPONSE_TEXTS.UNCOMPLETED_TODO }
+    } 
 }

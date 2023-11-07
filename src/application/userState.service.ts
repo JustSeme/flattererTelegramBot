@@ -1,6 +1,8 @@
+import { SendMessageOptions } from "node-telegram-bot-api"
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import { UserStateType } from "../types/UserStateType"
 import { MessageThreadType } from "../types/UserStateType"
+import { BUTTONS_DATA } from "../constants"
 
 export const UserStateService = {
     async deleteUserState(chatId: number) {
@@ -34,6 +36,14 @@ export const UserStateService = {
 
         await UserStateRepository.updateUserState(actualUserState)
 
-        return { responseText: `Всё ради тебя! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?` }
+        const setStandardTodoTextOptions: SendMessageOptions = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: BUTTONS_DATA.DELETE_TODO_TEXT_TXT, callback_data: BUTTONS_DATA.DELETE_TODO_TEXT_CMD }]
+                ]
+            }
+        }
+
+        return { responseText: `Всё ради вас, превосходнейший! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?`, options: setStandardTodoTextOptions }
     }
 }
