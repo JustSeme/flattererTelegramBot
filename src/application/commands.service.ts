@@ -4,12 +4,13 @@ import { ComplimentsRepository } from "../infrastructure/compliments.repository"
 import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import { TodosRepository } from "../infrastructure/todos.repository"
+import { TodoService } from "./todo.serivce"
 
 export const CommandsService = {
     start(): { stickerURL: string, responseText: string } {
         return {
             stickerURL: 'https://tlgrm.ru/_/stickers/364/159/364159a8-d72f-4a04-8aa1-3272dd144b06/4.webp',
-            responseText: 'Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием задач, ведь ты всегда ставишь перед собой так много великих целей. Как я могу помочь тебе сегодня?'
+            responseText: 'Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием задач, ведь ты всегда ставишь перед собой так много великих целей'
         }
     },
 
@@ -66,7 +67,8 @@ export const CommandsService = {
                         return { 
                             responseText: 'Такого рода задачи могут быть только у поистине величайших людей! Текст задачи записан! А когда нужно выполнить эту задачу?',
                             options: updateTodoTextOptions,
-                            isShowCalendar: true
+                            messageThread: userState.messageThread,
+                            botMsgId: userState.botMsgId || null
                         }
                     }
                 case('change_todo_text'):
@@ -79,18 +81,10 @@ export const CommandsService = {
 
                     await UserStateRepository.deleteUserState(chatId, 'change_todo_text')
 
-                    const showAllTodosOptions = {
-                        reply_markup: {
-                            inline_keyboard: [
-                                [{ text: BUTTONS_DATA.SHOW_ALL_TODOS_TXT, callback_data: BUTTONS_DATA.SHOW_ALL_TODOS_CMD}],
-                            ]
-                        }
-                    }
-                    
-                    return {
-                        responseText: RESPONSE_TEXTS.TEXT_TODO_CHANGED,
-                        options: showAllTodosOptions
-                    }
+                    //@ts-ignore in this case todoId exists in userState
+                    const showTodoResponseData = await TodoService.showTodo(userState.todoId)
+
+                    return { ...showTodoResponseData, messageThread: userState.messageThread }
             }
     }
 }

@@ -3,10 +3,12 @@ import { CommandsService } from "../application/commands.service"
 import { bot, calendar } from "../main"
 import { BUTTONS_DATA } from "../constants"
 import { UserStateRepository } from "../infrastructure/userState.repository"
+import { UserStateService } from "../application/userState.service"
 
 export async function messagesController(msg) {
     const chatId = msg.chat.id
     const recivedText = msg.text
+    const actualUserState = await UserStateService.findUserState(chatId)
     let responseData
 
     switch(recivedText) {
@@ -35,12 +37,22 @@ export async function messagesController(msg) {
         default:
             responseData = await CommandsService.defaultCommand(chatId, recivedText)
 
+            let sendMessageResult = null
             if(responseData.responseText) {
-                await bot.sendMessage(chatId, responseData.responseText, responseData.options)
+                sendMessageResult = await bot.sendMessage(chatId, responseData.responseText, responseData.options)
             }
 
-            if(responseData.isShowCalendar) {
-                calendar.startNavCalendar(msg)
+            if(actualUserState && actualUserState.botMsgId) {
+                await bot.deleteMessage(chatId, actualUserState.botMsgId)
+            }
+            if(sendMessageResult) {
+                await UserStateService.updateStateMsgId(chatId, responseData.messageThread, sendMessageResult.message_id)
+            }
+            switch(responseData.messageThread) {
+                case('create_todo'):
+                    calendar.startNavCalendar(msg)
+                default:
+                    return
             }
     }
 }

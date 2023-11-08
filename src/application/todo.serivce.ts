@@ -22,11 +22,9 @@ export const TodoService = {
 
         await UserStateService.deleteUserState(chatId, 'create_todo')
 
-        await TodosRepository.createTodo(todo)
+        const insertedResult = await TodosRepository.createTodo(todo)
 
-        const hoursWord = getWordByNumber(+hours, ['час', 'часа', 'часов'])
-
-        return { responseText: `Задача создана! Жду не дождусь когда настанет ${date} чтобы в ${hours} ${hoursWord} снова написать тебе.` }
+        return this.showTodo(insertedResult.insertedId)
     },
 
     async showAllTodos(chatId: number) {
@@ -69,7 +67,10 @@ export const TodoService = {
                 }
             }
 
-            return { responseText: `Понял, что ты хочешь еще раз создать задачу. Однако, ты уже начал создавать задачу - "${userState.todoText}", но не указал дату и время выполнения.`, options: todoTextExistsOptions }
+            return {
+                responseText: `Понял, что ты хочешь еще раз создать задачу. Однако, ты уже начал создавать задачу - "${userState.todoText}", но не указал дату и время выполнения.`,
+                options: todoTextExistsOptions,
+            }
         }
 
         const createTodoOptions: SendMessageOptions = {
@@ -81,7 +82,11 @@ export const TodoService = {
             }
         }
 
-        return { responseText: 'Отлично! Какой текст твоей новой задачи?', options: createTodoOptions }
+        return {
+            responseText: 'Отлично! Какой текст твоей новой задачи?',
+            options: createTodoOptions,
+            messageThread: 'create_todo'
+        }
     },
 
     async deleteAllTodos(chatId: number) {
@@ -144,7 +149,9 @@ export const TodoService = {
         }
         
 
-        return { responseText: `Текст задачи: ${todoById.todoText}\n\nДата выполнения: ${formattedDate}\n\nВремя выполнения: ${todoById.hourForNotify}:00\n\nВыполнена:  ${todoCompletedEmoj}\n\nЭта блестящая задача требует вашего великого внимания и благородного усердия. Пожалуйста, не забудьте принять вызов вашего гения и великолепия!`, options: showTodoOptions }
+        return {
+            responseText: `Текст задачи: ${todoById.todoText}\n\nДата выполнения: ${formattedDate}\n\nВремя выполнения: ${todoById.hourForNotify}:00\n\nВыполнена:  ${todoCompletedEmoj}\n\nЭта блестящая задача требует вашего великого внимания и благородного усердия. Пожалуйста, не забудьте принять вызов вашего гения и великолепия!`,
+            options: showTodoOptions }
     },
 
     async changeCompleted(todoId: string, completed: boolean) {
@@ -164,7 +171,7 @@ export const TodoService = {
             return { responseText: RESPONSE_ERRORS.SOMETHING_WRONG }
         }
 
-        return { responseText: completed ? RESPONSE_TEXTS.COMPLETED_TODO : RESPONSE_TEXTS.UNCOMPLETED_TODO }
+        return this.showTodo(todoId)
     },
 
     async changeTodoText(chatId: number, todoId: string) {

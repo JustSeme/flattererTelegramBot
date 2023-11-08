@@ -21,7 +21,8 @@ export async function callbackController(msg) {
                     case('create_todo'):
                         responseData = await TodoService.createTodo(chatId, msg.from.first_name, actualUserState.todoText, date, hours)
 
-                        return bot.sendMessage(chatId, responseData.responseText)
+                        await bot.sendMessage(chatId, responseData.responseText, responseData.options)
+                        return bot.deleteMessage(chatId, actualUserState.botMsgId)
                     default:
                         return
                 }
@@ -40,6 +41,7 @@ export async function callbackController(msg) {
     })
     
 
+    let sendMessageResult
     switch(data) {
         case('show_all_todos'):
             responseData = await TodoService.showAllTodos(chatId)
@@ -48,20 +50,26 @@ export async function callbackController(msg) {
         case('start_creating_todo'):
             responseData = await TodoService.startCreatingTodo(chatId)
 
-            return bot.sendMessage(chatId, responseData.responseText, responseData.options)
+            sendMessageResult = await bot.sendMessage(chatId, responseData.responseText, responseData.options)
+
+            return UserStateService.updateStateMsgId(chatId, responseData.messageThread, sendMessageResult.message_id)
         case('cancel_creating_todo'):
-            
             await UserStateService.deleteUserState(chatId, 'create_todo')
             
             return bot.sendMessage(chatId, 'Если хочешь, можем и не создавать задачу. У меня ведь ещё есть как тебе угодить!')
-        case('delete_todo_text'):
+        case(BUTTONS_DATA.DELETE_TODO_TEXT_CMD):
             responseData = await TodoService.deleteTodoText(actualUserState, msg.from.username)
 
             return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case('set_standard_todo_text'):
             responseData = await UserStateService.setStandardTodoText(actualUserState._id)
 
-            await bot.sendMessage(chatId, responseData.responseText, responseData.options)
+            sendMessageResult = await bot.sendMessage(chatId, responseData.responseText, responseData.options)
+
+            if(actualUserState.botMsgId) {
+                await bot.deleteMessage(chatId, actualUserState.botMsgId)
+            }
+            await UserStateService.updateStateMsgId(chatId, responseData.messageThread, sendMessageResult.message_id)
             return calendar.startNavCalendar(message)
         case('delete_all_todos'):
             responseData = await TodoService.deleteAllTodos(chatId)
@@ -74,17 +82,22 @@ export async function callbackController(msg) {
         case(BUTTONS_DATA.COMLETE_TODO_CMD):
             responseData = await TodoService.changeCompleted(todoId, true)
 
-            return bot.sendMessage(chatId, responseData.responseText)
+            return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case(BUTTONS_DATA.UNCOMPLETE_TODO_CMD):
             responseData = await TodoService.changeCompleted(todoId, false)
 
-            return bot.sendMessage(chatId, responseData.responseText)
+            return bot.sendMessage(chatId, responseData.responseText, responseData.options)
         case(BUTTONS_DATA.CONTINUE_CREATING_TODO_CMD):
             return calendar.startNavCalendar(message)
         case(BUTTONS_DATA.CHANGE_TODO_TEXT_CMD):
             responseData = await TodoService.changeTodoText(chatId, todoId)
 
-            return bot.sendMessage(chatId, responseData.responseText)
+            sendMessageResult = await bot.sendMessage(chatId, responseData.responseText, responseData.options)
+
+            if(actualUserState && actualUserState.botMsgId) {
+                await bot.deleteMessage(chatId, actualUserState.botMsgId)
+            }
+            return UserStateService.updateStateMsgId(chatId, 'change_todo_text', sendMessageResult.message_id)
         default:
             return bot.sendMessage(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
     }

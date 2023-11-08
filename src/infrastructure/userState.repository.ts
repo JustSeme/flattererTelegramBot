@@ -39,6 +39,19 @@ export const UserStateRepository = {
         }
     },
 
+    async updateCreateTodoStateMsg(chatId: number, messageThread: MessageThreadType, messageId: number) {
+        try {
+            await UserStateCollection.updateOne(
+                { chatId, messageThread },
+                { $set: { botMsgId: messageId } 
+            })
+            return true
+        } catch (err) {
+            console.error(err)
+            return false
+        }
+    },
+
     findUserStateByThread(chatId: number, messageThread: MessageThreadType, todoId: string) {
         const filterObj: any = {
             chatId,

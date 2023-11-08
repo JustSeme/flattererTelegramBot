@@ -21,6 +21,7 @@ export const UserStateService = {
             const userStateInputModel: UserStateType = {
                 chatId,
                 todoText: null,
+                botMsgId: null,
                 todoId,
                 messageThread
             }
@@ -47,6 +48,14 @@ export const UserStateService = {
             }
         }
 
-        return { responseText: `Всё ради вас, превосходнейший! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?`, options: setStandardTodoTextOptions }
+        return { 
+            responseText: `Всё ради вас, превосходнейший! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?`, 
+            options: setStandardTodoTextOptions,
+            messageThread: 'create_todo'
+        }
     },
+
+    async updateStateMsgId(chatId: number, messageThread: MessageThreadType, messageId: number) {
+        return UserStateRepository.updateCreateTodoStateMsg(chatId, messageThread, messageId)
+    }
 }
