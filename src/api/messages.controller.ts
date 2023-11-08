@@ -42,9 +42,6 @@ export async function messagesController(msg) {
                 sendMessageResult = await bot.sendMessage(chatId, responseData.responseText, responseData.options)
             }
 
-            if(actualUserState && actualUserState.botMsgId) {
-                await bot.deleteMessage(chatId, actualUserState.botMsgId)
-            }
             if(sendMessageResult) {
                 await UserStateService.updateStateMsgId(chatId, responseData.messageThread, sendMessageResult.message_id)
             }
