@@ -5,7 +5,7 @@ export type BasicUserStateType = {
     sex: 'male' | 'female' | 'other' | null
     language: 'ru' | 'en'
     stateType: 'basic'
-    name: string
+    name: string | null
 }
 
 export type CreateTodoStateType = {

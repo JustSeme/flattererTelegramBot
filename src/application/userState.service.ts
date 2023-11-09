@@ -15,7 +15,7 @@ export const UserStateService = {
     },
     
     async findOrCreateTodoUserState(chatId: number, stateType: StateType, todoId: string = null) {
-        const userState = await UserStateRepository.findUserStateByThread(chatId, stateType, todoId)
+        const userState = await UserStateRepository.findTodoUserState(chatId, stateType, todoId)
 
         if(!userState) {
             const userStateInputModel: TodoUserStateType = {
@@ -26,18 +26,6 @@ export const UserStateService = {
             }
 
             const userStateId = await UserStateRepository.createTodoUserState(userStateInputModel)
-
-            return UserStateRepository.findUserStateById(userStateId)
-        }
-
-        return userState
-    },
-
-    async findOrCreateBasicUserState(chatId: number, userStateInputModel: BasicUserStateType) {
-        const userState = await UserStateRepository.findUserStateByThread(chatId, userStateInputModel.stateType)
-
-        if(!userState) {
-            const userStateId = await UserStateRepository.createBasicUserState(userStateInputModel)
 
             return UserStateRepository.findUserStateById(userStateId)
         }

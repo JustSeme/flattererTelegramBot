@@ -1,21 +1,11 @@
-import { BasicUserStateCollection, UserStateCollection } from "./db"
-import { BasicStateType, TodoUserStateType, StateType, BasicUserStateType } from "../types/UserStateType"
+import { UserStateCollection } from "./db"
+import { TodoUserStateType, StateType} from "../types/UserStateType"
 import { ObjectId } from "mongodb"
 
 export const UserStateRepository = {
     async createTodoUserState(userState: TodoUserStateType) {
         try {
             const result = await UserStateCollection.insertOne(userState)
-            return result.insertedId
-        } catch (err) {
-            console.error(err)
-            return null
-        }
-    },
-
-    async createBasicUserState(userState: BasicUserStateType) {
-        try {
-            const result = await BasicUserStateCollection.insertOne(userState)
             return result.insertedId
         } catch (err) {
             console.error(err)
@@ -61,7 +51,7 @@ export const UserStateRepository = {
         }
     },
 
-    findUserStateByThread(chatId: number, stateType: StateType | BasicStateType, todoId?: string) {
+    findTodoUserState(chatId: number, stateType: StateType, todoId?: string) {
         const filterObj: any = {
             chatId,
             stateType,

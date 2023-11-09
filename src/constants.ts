@@ -18,7 +18,12 @@ export const BUTTONS_DATA = {
     CONTINUE_CREATING_TODO_CMD: 'coninue_creating_todo', CONTINUE_CREATING_TODO_TXT: 'Вернуться к созданию задачи',
     COMLETE_TODO_CMD: 'complete_todo-', COMPLETE_TODO_TXT: 'Выполнить задачу',
     UNCOMPLETE_TODO_CMD: 'uncompl_todo-', UNCOMPLETE_TODO_TXT: 'Изменить статус на не выполненный',
-    CHANGE_TODO_TEXT_CMD: 'change_todo_text-', CHANGE_TODO_TEXT_TXT: 'Изменить текст задачи'
+    CHANGE_TODO_TEXT_CMD: 'change_todo_text-', CHANGE_TODO_TEXT_TXT: 'Изменить текст задачи',
+    CONFIRM_FIRST_NAME_CMD: 'confirm_first_name', CONFIRM_FIRST_NAME_TXT: 'Да',
+    REJECT_FIRST_NAME_CMD: 'reject_first_name', REJECT_FIRST_NAME_TXT: 'Нет, хочу чтобы ты называл меня иначе',
+    SELECT_MALE_SEX_CMD: 'select_male_sex', SELECT_MALE_SEX_TXT: 'Мужчина',
+    SELECT_FEMALE_SEX_CMD: 'select_female_sex', SELECT_FEMALE_SEX_TXT: 'Женщина',
+    SELECT_OTHER_SEX_CMD: 'select_other_sex', SELECT_OTHER_SEX_TXT: 'Другое'
 }
 
 export const commandsWithId = [BUTTONS_DATA.SHOW_TODO_CMD, BUTTONS_DATA.UNCOMPLETE_TODO_CMD, BUTTONS_DATA.COMLETE_TODO_CMD, BUTTONS_DATA.CHANGE_TODO_TEXT_CMD]
@@ -34,4 +39,6 @@ export const RESPONSE_ERRORS = {
 
 export const RESPONSE_TEXTS = {
     CHANGE_TODO_TEXT_STATE_CREATED: 'Возвышенный пользователь, для изменения текста задачи, пожалуйста, введите новый текст. Я жажду возможности воплотить ваше великолепие в этой задаче!',
+    REJECT_NAME: 'Хорошо, забыл это имя. Тогда как мне лучше тебя называть?',
+    CONFIRM_NAME: (name: string) => `Хорошо, ${name}, какого ты пола?`
 }

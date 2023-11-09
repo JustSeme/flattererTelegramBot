@@ -44,14 +44,14 @@ const start = async () => {
 
     bot.on('callback_query', callbackController);
 
-    setInterval(async () => {
+    /* setInterval(async () => {
         const todosForNotify = await TodosQueryRepository.getTodosForNotify()
     
         for(const todo of todosForNotify) {
             const notifyText = `Счастлив уведомить вас, ${todo.firstName}, что пришло время выполнить задачу ${todo.todoText}!\n`
             await bot.send(todo.chatId, notifyText)
         }
-    }, 3600000) // ever hour
+    }, 3600000) // ever hour */
 }
 
 runDB()

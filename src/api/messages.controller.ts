@@ -12,7 +12,7 @@ export async function messagesController(msg, match) {
             responseData = await CommandsService.start(chatId, msg.from.first_name)
 
             await bot.sendSticker(chatId, responseData.stickerURL)
-            return bot.send(chatId, responseData.responseText)
+            return bot.send(chatId, responseData.responseText, responseData.options)
         case '/info': 
             responseData = CommandsService.info(msg.chat.username)
 

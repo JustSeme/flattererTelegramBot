@@ -2,6 +2,7 @@ import { bot, calendar } from "../main"
 import { UserStateService } from "../application/userState.service"
 import { TodoService } from "../application/todo.serivce"
 import { BUTTONS_DATA, commandsWithId } from "../constants"
+import { BasicUserStateService } from "../application/BasicUserState.serivce"
 
 export async function callbackController(msg) {
     const message = msg.message
@@ -90,6 +91,14 @@ export async function callbackController(msg) {
 
             return bot.send(chatId, responseData.responseText, responseData.options)
             // TODO_update_msg_id
+        case(BUTTONS_DATA.CONFIRM_FIRST_NAME_CMD):
+            responseData = await BasicUserStateService.confirmFirstName(chatId)
+
+            return bot.send(chatId, responseData.responseText, responseData.options)
+        case(BUTTONS_DATA.REJECT_FIRST_NAME_CMD):
+            responseData = await BasicUserStateService.rejectName(chatId)
+
+            return bot.send(chatId, responseData.responseText)
         default:
             return bot.send(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
     }

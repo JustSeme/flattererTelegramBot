@@ -1,12 +1,12 @@
 import { SendMessageOptions } from "node-telegram-bot-api"
-import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS } from "../constants"
+import { BUTTONS_DATA, RESPONSE_ERRORS } from "../constants"
 import { ComplimentsRepository } from "../infrastructure/compliments.repository"
 import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import { TodosRepository } from "../infrastructure/todos.repository"
 import { TodoService } from "./todo.serivce"
 import { BasicUserStateType } from "../types/UserStateType"
-import { UserStateService } from "./userState.service"
+import { BasicUserStateService } from "./BasicUserState.serivce"
 
 export const CommandsService = {
     async start(chatId: number,  firstName: string) {
@@ -18,12 +18,21 @@ export const CommandsService = {
             name: firstName
         }
 
-        await UserStateService.findOrCreateBasicUserState(chatId, basicUserState) 
+        const userState = await BasicUserStateService.findOrCreateBasicUserState(chatId, basicUserState) 
 
-        // TODO here we should ask user about him basic information
+        const startOptions: SendMessageOptions = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: BUTTONS_DATA.CONFIRM_FIRST_NAME_TXT, callback_data: BUTTONS_DATA.CONFIRM_FIRST_NAME_CMD }],
+                    [{ text: BUTTONS_DATA.REJECT_FIRST_NAME_TXT, callback_data: BUTTONS_DATA.REJECT_FIRST_NAME_CMD }],
+                ]
+            }
+        }
+
         return {
             stickerURL: 'https://tlgrm.ru/_/stickers/364/159/364159a8-d72f-4a04-8aa1-3272dd144b06/4.webp',
-            responseText: 'Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием задач, ведь ты всегда ставишь перед собой так много великих целей. Как мне тебя называть?'
+            responseText: `Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием твоих великих целей. Называть тебя ${userState.name}?`,
+            options: startOptions
         }
     },
 
