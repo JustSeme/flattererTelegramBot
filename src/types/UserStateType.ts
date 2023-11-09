@@ -1,18 +1,26 @@
-export type UserStateType = CreateTodoStateType | ChangeTodoTextStateType
+export type TodoUserStateType = CreateTodoStateType | ChangeTodoTextStateType
+
+export type BasicUserStateType = {
+    chatId: number
+    sex: 'male' | 'female' | 'other' | null
+    language: 'ru' | 'en'
+    stateType: 'basic'
+    name: string
+}
 
 export type CreateTodoStateType = {
     chatId: number
     todoText: string | null
-    botMsgId: number | null
-    messageThread: 'create_todo'
+    stateType: 'create_todo'
 }
 
 export type ChangeTodoTextStateType = {
     chatId: number
     todoText: string | null
     todoId: string | null
-    botMsgId: number | null
-    messageThread: 'change_todo_text'
+    stateType: 'change_todo_text'
 }
 
-export type MessageThreadType = 'create_todo' | 'change_todo_text'
+export type StateType = 'create_todo' | 'change_todo_text'
+
+export type BasicStateType = 'basic'

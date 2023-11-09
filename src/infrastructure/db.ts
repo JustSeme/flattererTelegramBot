@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb'
 import { TodoType } from '../types/TodoType'
-import { UserStateType } from '../types/UserStateType'
+import { BasicUserStateType, TodoUserStateType } from '../types/UserStateType'
 import { ComplimentType } from '../types/ComplimentType'
 
 let mongoURI = process.env.MONGO_URI
@@ -11,7 +11,9 @@ const complimentsBotDB = client.db('complimentsBot')
 
 export const ComplimentsCollection = complimentsBotDB.collection<ComplimentType>('compliments')
 
-export const UserStateCollection = complimentsBotDB.collection<UserStateType>('userState')
+export const UserStateCollection = complimentsBotDB.collection<TodoUserStateType>('userState')
+
+export const BasicUserStateCollection = complimentsBotDB.collection<BasicUserStateType>('basicUserState')
 
 export const TodosCollection = complimentsBotDB.collection<TodoType>('todos')
 

@@ -17,9 +17,9 @@ class MyBot extends TelegramBot {
     async send(chatId: number, text: string, options?: SendMessageOptions) {
         const actualUserState = await UserStateService.findUserState(chatId)
 
-        if(actualUserState && actualUserState.botMsgId) {
+        /* if(actualUserState && actualUserState.botMsgId) {
             await bot.deleteMessage(chatId, actualUserState.botMsgId)
-        }
+        } */
         return bot.sendMessage(chatId, text, options)
     }
 
@@ -37,7 +37,7 @@ export const calendar = new Calendar(bot, {
     time_step: '1h',
 });
 
-const start = () => {
+const start = async () => {
     bot.setMyCommands(commonCommands)
 
     bot.on('message', messagesController)

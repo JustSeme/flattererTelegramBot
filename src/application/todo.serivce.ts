@@ -2,7 +2,7 @@ import { SendMessageOptions } from "node-telegram-bot-api"
 import { getWordByNumber } from "../helpers"
 import { TodosRepository } from "../infrastructure/todos.repository"
 import { TodoType } from "../types/TodoType"
-import { UserStateType } from "../types/UserStateType"
+import { ChangeTodoTextStateType, CreateTodoStateType, TodoUserStateType } from "../types/UserStateType"
 import { UserStateService } from "./userState.service"
 import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS, RESPONSE_WARNS } from "../constants"
 import { UserStateRepository } from "../infrastructure/userState.repository"
@@ -50,7 +50,7 @@ export const TodoService = {
     },
 
     async startCreatingTodo(chatId: number) {
-        const userState: UserStateType = await UserStateService.findOrCreateUserState(chatId, 'create_todo')
+        const userState: TodoUserStateType = await UserStateService.findOrCreateTodoUserState(chatId, 'create_todo')
 
         if(!userState) {
             return { responseText: 'Что-то пошло не по плану, повтори попытку позже :-/' }
@@ -85,7 +85,7 @@ export const TodoService = {
         return {
             responseText: 'Отлично! Какой текст твоей новой задачи?',
             options: createTodoOptions,
-            messageThread: 'create_todo'
+            StateType: 'create_todo'
         }
     },
 
@@ -101,7 +101,7 @@ export const TodoService = {
         return { responseText: `Твоя воля - закон. Хотя это печально, что мне пришлось удалить ${deletedCount} ${word}` }
     },
 
-    async deleteTodoText(actualUserState: WithId<UserStateType>, username: string) {
+    async deleteTodoText(actualUserState: WithId<TodoUserStateType>, username: string) {
         if(!actualUserState || !actualUserState.todoText) {
             const stateNotExistsText = !actualUserState 
             ? `Понял вас, благородный ${username}. Однако, в текущий момент вы не создаёте задач, и, следовательно, нет необходимости в удаление её текста. Всегда готов служить вашим великим поручениям!`
@@ -175,7 +175,7 @@ export const TodoService = {
     },
 
     async changeTodoText(chatId: number, todoId: string) {
-        await UserStateService.findOrCreateUserState(chatId, 'change_todo_text', todoId)
+        await UserStateService.findOrCreateTodoUserState(chatId, 'change_todo_text', todoId)
 
         return { responseText: RESPONSE_TEXTS.CHANGE_TODO_TEXT_STATE_CREATED }
     }

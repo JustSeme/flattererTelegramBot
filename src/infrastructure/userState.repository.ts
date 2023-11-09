@@ -1,10 +1,9 @@
-import { UserStateCollection } from "./db"
-import { UserStateType } from "../types/UserStateType"
+import { BasicUserStateCollection, UserStateCollection } from "./db"
+import { BasicStateType, TodoUserStateType, StateType, BasicUserStateType } from "../types/UserStateType"
 import { ObjectId } from "mongodb"
-import { MessageThreadType } from "../types/UserStateType"
 
 export const UserStateRepository = {
-    async createUserState(userState: UserStateType) {
+    async createTodoUserState(userState: TodoUserStateType) {
         try {
             const result = await UserStateCollection.insertOne(userState)
             return result.insertedId
@@ -14,9 +13,19 @@ export const UserStateRepository = {
         }
     },
 
-    async deleteUserState(chatId: number, messageThread: MessageThreadType) {
+    async createBasicUserState(userState: BasicUserStateType) {
         try {
-            await UserStateCollection.deleteMany({ chatId, messageThread })
+            const result = await BasicUserStateCollection.insertOne(userState)
+            return result.insertedId
+        } catch (err) {
+            console.error(err)
+            return null
+        }
+    },
+
+    async deleteUserState(chatId: number, StateType: StateType) {
+        try {
+            await UserStateCollection.deleteMany({ chatId, StateType })
             return true
         } catch (err) {
             console.error(err)
@@ -39,10 +48,10 @@ export const UserStateRepository = {
         }
     },
 
-    async updateCreateTodoStateMsg(chatId: number, messageThread: MessageThreadType, messageId: number) {
+    async updateCreateTodoStateMsg(chatId: number, stateType: StateType, messageId: number) {
         try {
             await UserStateCollection.updateOne(
-                { chatId, messageThread },
+                { chatId, stateType },
                 { $set: { botMsgId: messageId } 
             })
             return true
@@ -52,13 +61,13 @@ export const UserStateRepository = {
         }
     },
 
-    findUserStateByThread(chatId: number, messageThread: MessageThreadType, todoId: string) {
+    findUserStateByThread(chatId: number, stateType: StateType | BasicStateType, todoId?: string) {
         const filterObj: any = {
             chatId,
-            messageThread,
+            stateType,
         }
         
-        if(messageThread === 'change_todo_text') {
+        if(stateType === 'change_todo_text' && todoId) {
             filterObj.todoId = todoId
         }
 
@@ -73,7 +82,7 @@ export const UserStateRepository = {
         return UserStateCollection.findOne({ chatId })
     },
 
-    findUserStateByThreadById(userStateId: ObjectId) {
+    findUserStateById(userStateId: ObjectId) {
         return UserStateCollection.findOne({ _id: userStateId })
-    }
+    },
 }

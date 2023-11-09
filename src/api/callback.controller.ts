@@ -17,7 +17,7 @@ export async function callbackController(msg) {
             const [date, hours] = res.split('/')
 
             if(actualUserState) {
-                switch(actualUserState.messageThread) {
+                switch(actualUserState.stateType) {
                     case('create_todo'):
                         responseData = await TodoService.createTodo(chatId, msg.from.first_name, actualUserState.todoText, date, hours)
 
@@ -49,9 +49,9 @@ export async function callbackController(msg) {
         case('start_creating_todo'):
             responseData = await TodoService.startCreatingTodo(chatId)
 
-            sendMessageResult = await bot.send(chatId, responseData.responseText, responseData.options)
+            return await bot.send(chatId, responseData.responseText, responseData.options)
 
-            return UserStateService.updateStateMsgId(chatId, responseData.messageThread, sendMessageResult.message_id)
+            // TODO_update_msg_id
         case('cancel_creating_todo'):
             await UserStateService.deleteUserState(chatId, 'create_todo')
             
@@ -65,7 +65,7 @@ export async function callbackController(msg) {
 
             sendMessageResult = await bot.send(chatId, responseData.responseText, responseData.options)
 
-            await UserStateService.updateStateMsgId(chatId, responseData.messageThread, sendMessageResult.message_id)
+            // TODO_update_msg_id
             return calendar.startNavCalendar(message)
         case('delete_all_todos'):
             responseData = await TodoService.deleteAllTodos(chatId)
@@ -88,9 +88,8 @@ export async function callbackController(msg) {
         case(BUTTONS_DATA.CHANGE_TODO_TEXT_CMD):
             responseData = await TodoService.changeTodoText(chatId, todoId)
 
-            sendMessageResult = await bot.send(chatId, responseData.responseText, responseData.options)
-
-            return UserStateService.updateStateMsgId(chatId, 'change_todo_text', sendMessageResult.message_id)
+            return bot.send(chatId, responseData.responseText, responseData.options)
+            // TODO_update_msg_id
         default:
             return bot.send(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
     }

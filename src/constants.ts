@@ -4,6 +4,7 @@ export const commonCommands = [
     { command: '/todo', description: 'Задачи' },
     { command: '/info', description: 'Получить информацию' },
     { command: '/compliment', description: 'Получить случайный комплиент' },
+    { command: '/bug', description: 'Сообщить об ошибке' }
 ]
 
 export const BUTTONS_DATA = {

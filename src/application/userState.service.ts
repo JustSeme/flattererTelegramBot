@@ -1,34 +1,45 @@
 import { SendMessageOptions } from "node-telegram-bot-api"
 import { UserStateRepository } from "../infrastructure/userState.repository"
-import { UserStateType } from "../types/UserStateType"
-import { MessageThreadType } from "../types/UserStateType"
+import { BasicUserStateType, TodoUserStateType } from "../types/UserStateType"
+import { StateType } from "../types/UserStateType"
 import { BUTTONS_DATA } from "../constants"
 import { ObjectId } from "mongodb"
 
 export const UserStateService = {
-    async deleteUserState(chatId: number, messageThread: MessageThreadType) {
-        return UserStateRepository.deleteUserState(chatId, messageThread)
+    async deleteUserState(chatId: number, StateType: StateType) {
+        return UserStateRepository.deleteUserState(chatId, StateType)
     },
 
     async findUserState(chatId: number) {
         return UserStateRepository.findUserState(chatId)
     },
     
-    async findOrCreateUserState(chatId: number, messageThread: MessageThreadType, todoId: string = null) {
-        const userState = await UserStateRepository.findUserStateByThread(chatId, messageThread, todoId)
+    async findOrCreateTodoUserState(chatId: number, stateType: StateType, todoId: string = null) {
+        const userState = await UserStateRepository.findUserStateByThread(chatId, stateType, todoId)
 
         if(!userState) {
-            const userStateInputModel: UserStateType = {
+            const userStateInputModel: TodoUserStateType = {
                 chatId,
-                todoText: null,
-                botMsgId: null,
+                stateType,
                 todoId,
-                messageThread
+                todoText: null
             }
 
-            const userStateId = await UserStateRepository.createUserState(userStateInputModel)
+            const userStateId = await UserStateRepository.createTodoUserState(userStateInputModel)
 
-            return UserStateRepository.findUserStateByThreadById(userStateId)
+            return UserStateRepository.findUserStateById(userStateId)
+        }
+
+        return userState
+    },
+
+    async findOrCreateBasicUserState(chatId: number, userStateInputModel: BasicUserStateType) {
+        const userState = await UserStateRepository.findUserStateByThread(chatId, userStateInputModel.stateType)
+
+        if(!userState) {
+            const userStateId = await UserStateRepository.createBasicUserState(userStateInputModel)
+
+            return UserStateRepository.findUserStateById(userStateId)
         }
 
         return userState
@@ -51,11 +62,11 @@ export const UserStateService = {
         return { 
             responseText: `Всё ради вас, превосходнейший! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?`, 
             options: setStandardTodoTextOptions,
-            messageThread: 'create_todo'
+            StateType: 'create_todo'
         }
     },
 
-    async updateStateMsgId(chatId: number, messageThread: MessageThreadType, messageId: number) {
-        return UserStateRepository.updateCreateTodoStateMsg(chatId, messageThread, messageId)
+    async updateStateMsgId(chatId: number, StateType: StateType, messageId: number) {
+        return UserStateRepository.updateCreateTodoStateMsg(chatId, StateType, messageId)
     }
 }

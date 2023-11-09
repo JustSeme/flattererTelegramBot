@@ -5,12 +5,25 @@ import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import { TodosRepository } from "../infrastructure/todos.repository"
 import { TodoService } from "./todo.serivce"
+import { BasicUserStateType } from "../types/UserStateType"
+import { UserStateService } from "./userState.service"
 
 export const CommandsService = {
-    start(): { stickerURL: string, responseText: string } {
+    async start(chatId: number,  firstName: string) {
+        const basicUserState: BasicUserStateType = {
+            chatId,
+            language: 'ru',
+            sex: null,
+            stateType: 'basic',
+            name: firstName
+        }
+
+        await UserStateService.findOrCreateBasicUserState(chatId, basicUserState) 
+
+        // TODO here we should ask user about him basic information
         return {
             stickerURL: 'https://tlgrm.ru/_/stickers/364/159/364159a8-d72f-4a04-8aa1-3272dd144b06/4.webp',
-            responseText: 'Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием задач, ведь ты всегда ставишь перед собой так много великих целей'
+            responseText: 'Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием задач, ведь ты всегда ставишь перед собой так много великих целей. Как мне тебя называть?'
         }
     },
 
@@ -51,7 +64,7 @@ export const CommandsService = {
                 return { responseText: 'Простите, я не совсем понимаю ваш запрос. Мой фокус - помогать вам с задачами. Если нужна помощь, просто скажите, и я сделаю всё возможное, чтобы помочь вам.' }
             }
 
-            switch(userState.messageThread) {
+            switch(userState.stateType) {
                 case('create_todo'):
                     if(!userState.todoText) {
                         await UserStateRepository.updateStateTodoText(userState._id, recivedText)
@@ -67,8 +80,7 @@ export const CommandsService = {
                         return { 
                             responseText: 'Такого рода задачи могут быть только у поистине величайших людей! Текст задачи записан! А когда нужно выполнить эту задачу?',
                             options: updateTodoTextOptions,
-                            messageThread: userState.messageThread,
-                            botMsgId: userState.botMsgId || null
+                            StateType: userState.stateType,
                         }
                     }
                 case('change_todo_text'):
@@ -84,7 +96,13 @@ export const CommandsService = {
                     //@ts-ignore in this case todoId exists in userState
                     const showTodoResponseData = await TodoService.showTodo(userState.todoId)
 
-                    return { ...showTodoResponseData, messageThread: userState.messageThread }
+                    return { ...showTodoResponseData, StateType: userState.stateType }
             }
+    },
+
+    bug() {
+        return {
+            responseText: 'Привет, догорой пользователь! Если ты обнаружил ошибку в моей работе, пожалуйста, напиши разработчику\nhttps://t.me/justseme'
+        }
     }
 }
