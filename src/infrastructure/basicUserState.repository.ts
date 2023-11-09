@@ -35,5 +35,25 @@ export const BasicUserStateRepository = {
         const basicUserState = await BasicUserStateCollection.findOne({ chatId })
 
         return basicUserState.name
+    },
+
+    async updateLang(chatId: number, language: 'ru' | 'en') {
+        try {
+            await BasicUserStateCollection.updateOne({ chatId }, { $set: { language } })
+            return true
+        } catch (err) {
+            console.error(err)
+            return false
+        }
+    },
+
+    async updateSex(chatId: number, sex: string) {
+        try {
+            const updateResult = await BasicUserStateCollection.updateOne({ chatId }, { $set: { sex } })
+            return updateResult.matchedCount === 1
+        } catch (err) {
+            console.error(err)
+            return false
+        }
     }
 }

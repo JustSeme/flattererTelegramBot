@@ -2,7 +2,7 @@ export type TodoUserStateType = CreateTodoStateType | ChangeTodoTextStateType
 
 export type BasicUserStateType = {
     chatId: number
-    sex: 'male' | 'female' | 'other' | null
+    sex: string | null
     language: 'ru' | 'en'
     stateType: 'basic'
     name: string | null

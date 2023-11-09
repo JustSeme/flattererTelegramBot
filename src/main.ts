@@ -7,6 +7,7 @@ import { messagesController } from "./api/messages.controller";
 import { commonCommands } from "./constants";
 import { callbackController } from "./api/callback.controller";
 import { UserStateService } from "./application/userState.service";
+import { BasicUserStateService } from "./application/BasicUserState.serivce";
 
 const token = process.env.TELEGRAM_BOT_TOKEN
 class MyBot extends TelegramBot {
@@ -40,18 +41,22 @@ export const calendar = new Calendar(bot, {
 const start = async () => {
     bot.setMyCommands(commonCommands)
 
+    bot.addListener('message', async (msg) => {
+        msg.userState = await BasicUserStateService.findUserState(msg.from.id)
+    })
+
     bot.on('message', messagesController)
 
     bot.on('callback_query', callbackController);
 
-    /* setInterval(async () => {
+    setInterval(async () => {
         const todosForNotify = await TodosQueryRepository.getTodosForNotify()
     
         for(const todo of todosForNotify) {
             const notifyText = `Счастлив уведомить вас, ${todo.firstName}, что пришло время выполнить задачу ${todo.todoText}!\n`
             await bot.send(todo.chatId, notifyText)
         }
-    }, 3600000) // ever hour */
+    }, 3600000) // ever hour
 }
 
 runDB()

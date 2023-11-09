@@ -18,20 +18,20 @@ export const CommandsService = {
             name: firstName
         }
 
-        const userState = await BasicUserStateService.findOrCreateBasicUserState(chatId, basicUserState) 
+        await BasicUserStateService.findOrCreateBasicUserState(chatId, basicUserState) 
 
         const startOptions: SendMessageOptions = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: BUTTONS_DATA.CONFIRM_FIRST_NAME_TXT, callback_data: BUTTONS_DATA.CONFIRM_FIRST_NAME_CMD }],
-                    [{ text: BUTTONS_DATA.REJECT_FIRST_NAME_TXT, callback_data: BUTTONS_DATA.REJECT_FIRST_NAME_CMD }],
+                    [{ text: BUTTONS_DATA.SELECT_RU_LANG_TXT, callback_data: BUTTONS_DATA.SELECT_RU_LANG_CMD },
+                    { text: BUTTONS_DATA.SELECT_EN_LANG_TXT, callback_data: BUTTONS_DATA.SELECT_EN_LANG_CMD }],
                 ]
             }
         }
 
         return {
             stickerURL: 'https://tlgrm.ru/_/stickers/364/159/364159a8-d72f-4a04-8aa1-3272dd144b06/4.webp',
-            responseText: `Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием твоих великих целей. Называть тебя ${userState.name}?`,
+            responseText: `Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием твоих великих целей. На каком языке ты говоришь?`,
             options: startOptions
         }
     },

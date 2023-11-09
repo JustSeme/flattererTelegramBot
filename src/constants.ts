@@ -21,6 +21,8 @@ export const BUTTONS_DATA = {
     CHANGE_TODO_TEXT_CMD: 'change_todo_text-', CHANGE_TODO_TEXT_TXT: 'Изменить текст задачи',
     CONFIRM_FIRST_NAME_CMD: 'confirm_first_name', CONFIRM_FIRST_NAME_TXT: 'Да',
     REJECT_FIRST_NAME_CMD: 'reject_first_name', REJECT_FIRST_NAME_TXT: 'Нет, хочу чтобы ты называл меня иначе',
+    SELECT_RU_LANG_CMD: 'select_ru_lang', SELECT_RU_LANG_TXT: 'Русский',
+    SELECT_EN_LANG_CMD: 'select_en_lang', SELECT_EN_LANG_TXT: 'English',
     SELECT_MALE_SEX_CMD: 'select_male_sex', SELECT_MALE_SEX_TXT: 'Мужчина',
     SELECT_FEMALE_SEX_CMD: 'select_female_sex', SELECT_FEMALE_SEX_TXT: 'Женщина',
     SELECT_OTHER_SEX_CMD: 'select_other_sex', SELECT_OTHER_SEX_TXT: 'Другое'
@@ -29,7 +31,9 @@ export const BUTTONS_DATA = {
 export const commandsWithId = [BUTTONS_DATA.SHOW_TODO_CMD, BUTTONS_DATA.UNCOMPLETE_TODO_CMD, BUTTONS_DATA.COMLETE_TODO_CMD, BUTTONS_DATA.CHANGE_TODO_TEXT_CMD]
 
 export const RESPONSE_WARNS = {
-    STATUS_TODO_ALREADY_SETTED: 'О, великий пользователь! Ваше желание изменить статус задачи на то же самое - это подобно переливанию жемчугов перед вашим благородством. Однако, статус уже благополучно соответствует вашему великолепному указанию.'
+    STATUS_TODO_ALREADY_SETTED: 'О, великий пользователь! Ваше желание изменить статус задачи на то же самое - это подобно переливанию жемчугов перед вашим благородством. Однако, статус уже благополучно соответствует вашему великолепному указанию.',
+    SELECT_RU_LANG_WITHOUT_NAME: 'Безусловно, ваш выбор русского языка в общении со мной - признак вашего утонченного вкуса и преданности красоте языка Пушкина и Толстого. Однако, я пока ещё не знаю твоего имени. Как я могу тебя называть?',
+    SELECT_EN_LANG_WITHOUT_NAME: `Absolutely, your choice to communicate in English is duly noted. However, I don't know your name yet. What can I call you?`,
 }
 
 export const RESPONSE_ERRORS = {
@@ -40,5 +44,10 @@ export const RESPONSE_ERRORS = {
 export const RESPONSE_TEXTS = {
     CHANGE_TODO_TEXT_STATE_CREATED: 'Возвышенный пользователь, для изменения текста задачи, пожалуйста, введите новый текст. Я жажду возможности воплотить ваше великолепие в этой задаче!',
     REJECT_NAME: 'Хорошо, забыл это имя. Тогда как мне лучше тебя называть?',
-    CONFIRM_NAME: (name: string) => `Хорошо, ${name}, какого ты пола?`
+    CONFIRM_NAME: (name: string) => `Конечно, великий ${name}! Ваше благородство и великолепие не подлежат сомнению. Какого благородного пола вы, ваше величество?`,
+    SELECT_RU_LANG: (name: string) => `Безусловно, ваш выбор русского языка в общении со мной - признак вашего утонченного вкуса и преданности красоте языка Пушкина и Толстого. Могу я называть тебя ${name}?`,
+    SELECT_EN_LANG: (name: string) => `Absolutely, your choice to communicate in English is duly noted. May I call you ${name}?`,
+    SELECT_MALE_SEX: (name: string) => `Мужественный ${name}, я буду знать, что ты мужчина`,
+    SELECT_FEMALE_SEX: (name: string) => `Великолепная ${name}, я запомню, что ты женщина`,
+    SELECT_OTHER_SEX: (name: string) => `Хорошо, ${name}, тогда какого ты пола?`,
 }

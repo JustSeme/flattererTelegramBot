@@ -35,6 +35,8 @@ export async function messagesController(msg, match) {
 
             return bot.send(chatId, 'kek')
         default:
+            console.log(msg);
+            
             responseData = await CommandsService.defaultCommand(chatId, recivedText)
 
             let sendMessageResult = null
