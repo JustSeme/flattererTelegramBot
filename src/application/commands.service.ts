@@ -12,16 +12,18 @@ import { TodoUserStateType } from "../types/UserStateType"
 import { WithId } from "mongodb"
 
 export const CommandsService = {
-    async start(msg: any, chatId: number, username: string) {
-        const basicUserState: BasicUserStateType = {
-            chatId,
-            language: 'ru',
-            sex: null,
-            stateType: 'basic',
-            name: username
+    async start(msg: any, chatId: number) {
+        if(!msg.basicUserState) {
+            const basicUserState: BasicUserStateType = {
+                chatId,
+                language: 'ru',
+                sex: null,
+                stateType: 'basic',
+                name: msg.from.first_name
+            }
+    
+            await BasicUserStateService.createBasicUserState(chatId, basicUserState) 
         }
-
-        await BasicUserStateService.findOrCreateBasicUserState(chatId, basicUserState) 
 
         const options: SendMessageOptions = {
             reply_markup: {
@@ -45,7 +47,8 @@ export const CommandsService = {
         return bot.send(chatId, responseText)
     },
 
-    info(msg: any, chatId: number, username: string) {
+    info(msg: any, chatId: number) {
+        const username = msg.basicUserState.name
         const currentHour = new Date().getHours()
 
         const responseText = RESPONSE_TEXTS.INFO(username, currentHour)
@@ -71,7 +74,9 @@ export const CommandsService = {
         return bot.send(chatId, responseText, options)
     },
 
-    async defaultCommand(msg: any, chatId: number, username: string, recivedText: string, actualUserState: WithId<TodoUserStateType>) {
+    async defaultCommand(msg: any, chatId: number) {
+        const recivedText = msg.text
+        const actualUserState = await UserStateRepository.findActualUserState(chatId)
         let responseText: string
 
         if(!actualUserState) {

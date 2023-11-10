@@ -7,7 +7,7 @@ import { messagesController } from "./api/messages.controller";
 import { commonCommands } from "./constants";
 import { callbackController } from "./api/callback.controller";
 import { UserStateService } from "./application/userState.service";
-import { processUpdateMessage } from "./middlewares/processUpdateMessage.middleware";
+import { processUpdate } from "./middlewares/processUpdate.middleware";
 import { calendarHandler } from "./api/calendar.handler";
 
 const token = process.env.TELEGRAM_BOT_TOKEN
@@ -17,7 +17,7 @@ class MyBot extends TelegramBot {
     }
     
     async send(chatId: number, text: string, options?: SendMessageOptions) {
-        const actualUserState = await UserStateService.findUserState(chatId)
+        const actualUserState = await UserStateService.findActualUserState(chatId)
 
         /* if(actualUserState && actualUserState.botMsgId) {
             await bot.deleteMessage(chatId, actualUserState.botMsgId)
@@ -44,7 +44,7 @@ const start = async () => {
 
     bot.on('message', messagesController)
 
-    bot.addListener('callback_query', (msg) => processUpdateMessage(msg, calendarHandler))
+    bot.addListener('callback_query', (msg) => processUpdate(msg, calendarHandler))
 
     bot.on('callback_query', callbackController);
 

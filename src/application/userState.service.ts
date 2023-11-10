@@ -2,16 +2,21 @@ import { SendMessageOptions } from "node-telegram-bot-api"
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import { BasicUserStateType, TodoUserStateType } from "../types/UserStateType"
 import { StateType } from "../types/UserStateType"
-import { BUTTONS_DATA } from "../constants"
+import { BUTTONS_DATA, RESPONSE_TEXTS, RESPONSE_WARNS } from "../constants"
 import { ObjectId } from "mongodb"
+import { bot, calendar } from "../main"
 
 export const UserStateService = {
-    async deleteUserState(chatId: number, StateType: StateType) {
-        return UserStateRepository.deleteUserState(chatId, StateType)
+    async deleteUserState(chatId: number, stateType: StateType) {
+        return UserStateRepository.deleteUserState(chatId, stateType)
     },
 
-    async findUserState(chatId: number) {
-        return UserStateRepository.findUserState(chatId)
+    async deleteCreateTodoState(msg: any, chatId: number) {
+        return UserStateRepository.deleteUserState(chatId, 'create_todo')
+    },
+
+    async findActualUserState(chatId: number) {
+        return UserStateRepository.findActualUserState(chatId)
     },
     
     async findOrCreateTodoUserState(chatId: number, stateType: StateType, todoId: string = null) {
@@ -33,11 +38,13 @@ export const UserStateService = {
         return userState
     },
 
-    async setStandardTodoText(stateId: string | ObjectId) {
+    async setStandardTodoText(msg: any, chatId: number) {
+        const actualUserState = await UserStateRepository.findActualUserState(chatId)
+
         // here will be get standard user text
         const standardText = 'Сделать возможность изменять стандартный текст для пользователя'
 
-        await UserStateRepository.updateStateTodoText(stateId, standardText)
+        await UserStateRepository.updateStateTodoText(actualUserState._id, standardText)
 
         const setStandardTodoTextOptions: SendMessageOptions = {
             reply_markup: {
@@ -47,11 +54,10 @@ export const UserStateService = {
             }
         }
 
-        return { 
-            responseText: `Всё ради вас, превосходнейший! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?`, 
-            options: setStandardTodoTextOptions,
-            StateType: 'create_todo'
-        }
+        const responseText = RESPONSE_TEXTS.STANDARD_TEXT_SETTED(standardText) 
+
+        await bot.send(chatId, responseText)
+        return calendar.startNavCalendar(msg.message)
     },
 
     async updateStateMsgId(chatId: number, StateType: StateType, messageId: number) {

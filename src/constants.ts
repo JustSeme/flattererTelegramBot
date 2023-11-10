@@ -1,4 +1,3 @@
-
 export const commonCommands = [
     { command: '/start', description: 'Приветствие' },
     { command: '/todo', description: 'Задачи' },
@@ -33,8 +32,10 @@ export const commandsWithId = [BUTTONS_DATA.SHOW_TODO_CMD, BUTTONS_DATA.UNCOMPLE
 export const RESPONSE_WARNS = {
     STATUS_TODO_ALREADY_SETTED: 'О, великий пользователь! Ваше желание изменить статус задачи на то же самое - это подобно переливанию жемчугов перед вашим благородством. Однако, статус уже благополучно соответствует вашему великолепному указанию.',
     DEFAULT: 'Простите, я не совсем понимаю ваш запрос. Мой фокус - помогать вам с задачами. Если нужна помощь, просто скажите, и я сделаю всё возможное, чтобы помочь вам.',
+    CREATING_TODO_STATE_EXISTS: (todoText: string) =>  `Понял, что ты хочешь еще раз создать задачу. Однако, ты уже начал создавать задачу - "${todoText}", но не указал дату и время выполнения.`,
     SELECT_RU_LANG_WITHOUT_NAME: 'Безусловно, ваш выбор русского языка в общении со мной - признак вашего утонченного вкуса и преданности красоте языка Пушкина и Толстого. Однако, я пока ещё не знаю твоего имени. Как я могу тебя называть?',
     SELECT_EN_LANG_WITHOUT_NAME: `Absolutely, your choice to communicate in English is duly noted. However, I don't know your name yet. What can I call you?`,
+    CREATE_TODO_STATE_NOT_EXISTS: (username: string) => `Понял вас, благородный ${username}. Однако, в текущий момент вы не создаёте задач или текст задачи отсутствует, и, следовательно, нет необходимости в удаление её текста.`,
 }
 
 export const RESPONSE_ERRORS = {
@@ -56,5 +57,10 @@ export const RESPONSE_TEXTS = {
     SELECT_FEMALE_SEX: (name: string) => `Великолепная ${name}, я запомню, что ты женщина`,
     SELECT_OTHER_SEX: (name: string) => `Хорошо, ${name}, тогда какого ты пола?`,
     CMD_BUG: 'Привет, догорой пользователь! Если ты обнаружил ошибку в моей работе, пожалуйста, напиши моему разработчику\nhttps://t.me/justseme',
-    SHOW_ALL_TODOS: (todosCount: number, taskWord: string) => `У тебя есть ${todosCount} ${taskWord} в списке. Выбери нужную задачу для более подробной информации.`
+    SHOW_ALL_TODOS: (todosCount: number, taskWord: string) => `У тебя есть ${todosCount} ${taskWord} в списке. Выбери нужную задачу для более подробной информации.`,
+    START_CREATING_TODOS: 'Отлично! Введи текст твоей новой задачи',
+    DELETE_ALL_TODOS: (deletedCount: number, word: string) => `Твоя воля - закон. Хотя это печально, что мне пришлось удалить ${deletedCount} ${word}`,
+    CREATE_TODO_TEXT_DELETED: 'Ваше великолепие, текст задачи благополучно удалён! Однако, ваше величие не оставит нас без новой блистательной задачи. Пожалуйста, раскройте свой ум и введите новый текст задачи для продолжения благородного творчества!',
+    SHOW_TODO: (todoText: string, formattedDate: string, hourForNotify: number, todoCompletedEmoj: string) => `Текст задачи: ${todoText}\n\nДата выполнения: ${formattedDate}\n\nВремя выполнения: ${hourForNotify}:00\n\nВыполнена:  ${todoCompletedEmoj}\n\nЭта блестящая задача требует вашего великого внимания и благородного усердия. Пожалуйста, не забудьте принять вызов вашего гения и великолепия!`,
+    STANDARD_TEXT_SETTED: (standardText: string) => `Всё ради вас, превосходнейший! Стандартный текст - "${standardText}" установлен. А когда нужно выполнить задачу?`
 }

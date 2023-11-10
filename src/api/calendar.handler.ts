@@ -1,9 +1,10 @@
 import { TodoService } from "../application/todo.serivce";
+import { UserStateService } from "../application/userState.service";
 import { bot, calendar } from "../main";
-import { TodoUserStateType } from "../types/UserStateType";
 
-export async function calendarHandler(msg: any, chatId: number, username: string, recivedText: string, actualUserState: TodoUserStateType) {
+export async function calendarHandler(msg: any, chatId: number) {
     const message = msg.message
+    const actualUserState = await UserStateService.findActualUserState(chatId)
     let responseData
 
     if (message.message_id == calendar.chats.get(chatId)) { // select date and time from calendar

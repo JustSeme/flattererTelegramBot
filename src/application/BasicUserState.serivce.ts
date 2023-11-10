@@ -16,7 +16,13 @@ export const BasicUserStateService = {
         return userState
     },
 
-    findUserState(chatId: number) {
+    async createBasicUserState(chatId: number, userStateInputModel: BasicUserStateType) {
+        const userStateId = await BasicUserStateRepository.createBasicUserState(userStateInputModel)
+
+        return !!userStateId
+    },
+
+    findActualUserState(chatId: number) {
         return BasicUserStateRepository.findBasicUserState(chatId)
     },
 

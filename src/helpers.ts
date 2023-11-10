@@ -1,3 +1,6 @@
+import { commandsWithId } from "./constants"
+import { StateType } from "./types/UserStateType"
+
 export function getTimeOfDay(date: number | Date): string {
     const currentHour = new Date(date).getHours()
     if (currentHour >= 0 && currentHour <= 6) {
@@ -22,4 +25,16 @@ export function getWordByNumber(n: number, text_forms: string[]) {
     if (n1 > 1 && n1 < 5) { return text_forms[1]; }
     if (n1 === 1) { return text_forms[0]; }
     return text_forms[2];
+}
+
+export function getTodoId(data: string) {
+    let todoId = ''
+    commandsWithId.some(cmd => {
+        if(data.includes(cmd)) {
+            todoId = data.split('-')[1]
+            data = cmd
+        }
+    })
+
+    return { todoId, data }
 }

@@ -1,7 +1,7 @@
 import { CommandsService } from "../application/commands.service"
-import { bot, calendar } from "../main"
+import { bot } from "../main"
 import { UserStateRepository } from "../infrastructure/userState.repository"
-import { HandlerType, processUpdateMessage } from "../middlewares/processUpdateMessage.middleware"
+import { HandlerType, processUpdate } from "../middlewares/processUpdate.middleware"
 
 export async function messagesController(msg) {
     const chatId = msg.chat.id
@@ -30,8 +30,8 @@ export async function messagesController(msg) {
 
             return bot.send(chatId, 'kek')
         default:
-            handler =  CommandsService.defaultCommand
+            handler = CommandsService.defaultCommand
             break;
         }
-    await processUpdateMessage(msg, handler)
+    await processUpdate(msg, handler)
 }

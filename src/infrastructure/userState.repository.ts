@@ -68,7 +68,7 @@ export const UserStateRepository = {
         await UserStateCollection.deleteMany({ chatId })
     },
 
-    findUserState(chatId: number) {
+    findActualUserState(chatId: number) {
         return UserStateCollection.findOne({ chatId })
     },
 
