@@ -56,4 +56,5 @@ export const RESPONSE_TEXTS = {
     SELECT_FEMALE_SEX: (name: string) => `Великолепная ${name}, я запомню, что ты женщина`,
     SELECT_OTHER_SEX: (name: string) => `Хорошо, ${name}, тогда какого ты пола?`,
     CMD_BUG: 'Привет, догорой пользователь! Если ты обнаружил ошибку в моей работе, пожалуйста, напиши моему разработчику\nhttps://t.me/justseme',
+    SHOW_ALL_TODOS: (todosCount: number, taskWord: string) => `У тебя есть ${todosCount} ${taskWord} в списке. Выбери нужную задачу для более подробной информации.`
 }

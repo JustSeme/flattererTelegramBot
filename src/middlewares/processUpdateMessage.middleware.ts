@@ -2,7 +2,7 @@ import { BasicUserStateService } from "../application/BasicUserState.serivce"
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import { TodoUserStateType } from "../types/UserStateType"
 
-export const processUpdate = async (msg, handler: HandlerType) => {
+export const processUpdateMessage = async (msg, handler: HandlerType) => {
     msg.basicUserState = await BasicUserStateService.findUserState(msg.from.id)
 
     const chatId = msg.from.id

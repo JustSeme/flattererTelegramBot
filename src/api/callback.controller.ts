@@ -3,35 +3,15 @@ import { UserStateService } from "../application/userState.service"
 import { TodoService } from "../application/todo.serivce"
 import { BUTTONS_DATA, commandsWithId } from "../constants"
 import { BasicUserStateService } from "../application/BasicUserState.serivce"
+import { HandlerType } from "../middlewares/processUpdateMessage.middleware"
+import { TodoUserStateType } from "../types/UserStateType"
+import { processUpdateQuery } from "../middlewares/processUpdateQuery.middleware"
 
-export async function callbackController(msg) {
+export async function callbackController(msg: any) { 
     const message = msg.message
-    const chatId = message.chat.id
     const userState = msg.userState
     let data = msg.data
-    let responseData
-
-    const actualUserState = await UserStateService.findUserState(chatId)
-
-    if (message.message_id == calendar.chats.get(chatId)) { // select date and time from calendar
-        const res = calendar.clickButtonCalendar(msg);
-        if (res !== -1) {
-            const [date, hours] = res.split('/')
-
-            if(actualUserState) {
-                switch(actualUserState.stateType) {
-                    case('create_todo'):
-                        responseData = await TodoService.createTodo(chatId, msg.from.first_name, actualUserState.todoText, date, hours)
-
-                        return bot.send(chatId, responseData.responseText, responseData.options)
-                    default:
-                        return
-                }
-            }
-        } else {
-            return
-        }
-    }
+    let handler: HandlerType
 
     let todoId = ''
     commandsWithId.some(cmd => {
@@ -45,9 +25,8 @@ export async function callbackController(msg) {
     let sendMessageResult
     switch(data) {
         case('show_all_todos'):
-            responseData = await TodoService.showAllTodos(chatId)
-            
-            return bot.send(chatId, responseData.responseText, responseData.options)
+            handler = TodoService.showAllTodos
+            break;
         case('start_creating_todo'):
             responseData = await TodoService.startCreatingTodo(chatId)
 
@@ -121,6 +100,10 @@ export async function callbackController(msg) {
 
             return bot.send(chatId, responseData.responseText)
         default:
-            return bot.send(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
+            
+            if(!actualUserState) {
+                return bot.send(chatId, 'Я готов выполнить любые твои желания... впрочем, этого действия я не знаю')
+            }
     }
+    processUpdateQuery(msg, handler)
 }

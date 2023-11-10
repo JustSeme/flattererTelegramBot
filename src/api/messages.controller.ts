@@ -1,13 +1,12 @@
 import { CommandsService } from "../application/commands.service"
 import { bot, calendar } from "../main"
 import { UserStateRepository } from "../infrastructure/userState.repository"
-import { HandlerType, processUpdate } from "../middlewares/processUpdate.middleware"
+import { HandlerType, processUpdateMessage } from "../middlewares/processUpdateMessage.middleware"
 
 export async function messagesController(msg) {
     const chatId = msg.chat.id
     const recivedText = msg.text
     let handler: HandlerType
-    let responseData
 
     switch(recivedText) {
         case '/start':
@@ -34,5 +33,5 @@ export async function messagesController(msg) {
             handler =  CommandsService.defaultCommand
             break;
         }
-    await processUpdate(msg, handler)
+    await processUpdateMessage(msg, handler)
 }

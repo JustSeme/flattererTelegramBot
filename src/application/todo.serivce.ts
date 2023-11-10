@@ -8,6 +8,7 @@ import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS, RESPONSE_WARNS } from ".
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import moment from "moment"
 import { WithId } from "mongodb"
+import { bot } from "../main"
 
 export const TodoService = {
     async createTodo(chatId: number, first_name: string, todoText: string, date: string, hours: string) {
@@ -27,26 +28,28 @@ export const TodoService = {
         return this.showTodo(insertedResult.insertedId)
     },
 
-    async showAllTodos(chatId: number) {
+    async showAllTodos(msg: any, chatId: number) {
         const todos = await TodosRepository.getTodosByUser(chatId)
 
         if(!todos.length) {
             return { responseText: 'Похоже, у тебя еще нет задач. Но не волнуйся, ведь самое интересное только начинается! Давай создадим твои первые задачи вместе.' }
         }
 
-        const todosOptions = {
+        const options = {
             reply_markup: {
                 inline_keyboard: []
             }
         }
 
         for(const todo of todos) {
-            todosOptions.reply_markup.inline_keyboard.push([{ text: todo.todoText, callback_data: BUTTONS_DATA.SHOW_TODO_CMD + todo._id }])
+            options.reply_markup.inline_keyboard.push([{ text: todo.todoText, callback_data: BUTTONS_DATA.SHOW_TODO_CMD + todo._id }])
         }
 
         const taskWord = getWordByNumber(todos.length, ['задача', 'задачи', 'задач'])
 
-        return { responseText: `У тебя есть ${todos.length} ${taskWord} в списке. Выбери нужную задачу для более подробной информации.`, options: todosOptions }
+        const responseText = RESPONSE_TEXTS.SHOW_ALL_TODOS(todos.length, taskWord)
+
+        return bot.send(chatId, responseText, options)
     },
 
     async startCreatingTodo(chatId: number) {

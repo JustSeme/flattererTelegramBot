@@ -7,6 +7,8 @@ import { messagesController } from "./api/messages.controller";
 import { commonCommands } from "./constants";
 import { callbackController } from "./api/callback.controller";
 import { UserStateService } from "./application/userState.service";
+import { processUpdateMessage } from "./middlewares/processUpdateMessage.middleware";
+import { calendarHandler } from "./api/calendar.handler";
 
 const token = process.env.TELEGRAM_BOT_TOKEN
 class MyBot extends TelegramBot {
@@ -41,6 +43,8 @@ const start = async () => {
     bot.setMyCommands(commonCommands)
 
     bot.on('message', messagesController)
+
+    bot.addListener('callback_query', (msg) => processUpdateMessage(msg, calendarHandler))
 
     bot.on('callback_query', callbackController);
 
