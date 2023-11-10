@@ -13,9 +13,9 @@ export const UserStateRepository = {
         }
     },
 
-    async deleteUserState(chatId: number, StateType: StateType) {
+    async deleteUserState(chatId: number, stateType: StateType) {
         try {
-            await UserStateCollection.deleteMany({ chatId, StateType })
+            await UserStateCollection.deleteMany({ chatId, stateType })
             return true
         } catch (err) {
             console.error(err)

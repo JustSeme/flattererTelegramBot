@@ -73,8 +73,6 @@ export const CommandsService = {
 
     async defaultCommand(msg: any, chatId: number, username: string, recivedText: string, actualUserState: WithId<TodoUserStateType>) {
         let responseText: string
-        console.log(actualUserState);
-        
 
         if(!actualUserState) {
             responseText = RESPONSE_WARNS.DEFAULT
@@ -96,7 +94,7 @@ export const CommandsService = {
 
                     await bot.send(chatId, responseText, options)
                     return calendar.startNavCalendar(msg)
-                }
+                } 
             case('change_todo_text'):
                 //@ts-ignore in this case todoId exists in userState
                 const isChanged = await TodosRepository.changeTodoText(actualUserState.todoId, recivedText)
