@@ -1,30 +1,29 @@
 import { CommandsService } from "../application/commands.service"
 import { bot, calendar } from "../main"
 import { UserStateRepository } from "../infrastructure/userState.repository"
+import { HandlerType, processUpdate } from "../middlewares/processUpdate.middleware"
 
-export async function messagesController(msg, match) {
+export async function messagesController(msg) {
     const chatId = msg.chat.id
     const recivedText = msg.text
+    let handler: HandlerType
     let responseData
 
     switch(recivedText) {
         case '/start':
-            responseData = await CommandsService.start(chatId, msg.from.first_name)
-
-            await bot.sendSticker(chatId, responseData.stickerURL)
-            return bot.send(chatId, responseData.responseText, responseData.options)
+            handler = CommandsService.start
+            break;
         case '/info': 
-            responseData = CommandsService.info(msg.chat.username)
-
-            return bot.send(chatId, responseData.responseText)
+            handler = CommandsService.info
+            break;
         case '/compliment':
-            responseData = await CommandsService.getCompliment()
+            handler = CommandsService.getCompliment
 
-            return bot.send(chatId, responseData.responseText)
+            break;
         case '/todo':
-            responseData = await CommandsService.todoCommand(chatId)
+            handler = CommandsService.todoCommand
 
-            return bot.send(chatId, responseData.responseText, responseData.options)
+            break;
         case '/bug':
             responseData = CommandsService.bug()
 
@@ -35,8 +34,6 @@ export async function messagesController(msg, match) {
 
             return bot.send(chatId, 'kek')
         default:
-            console.log(msg);
-            
             responseData = await CommandsService.defaultCommand(chatId, recivedText)
 
             let sendMessageResult = null
@@ -52,4 +49,5 @@ export async function messagesController(msg, match) {
                     return
             }
     }
+    await processUpdate(msg, handler)
 }

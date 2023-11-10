@@ -83,7 +83,7 @@ export const TodoService = {
         }
 
         return {
-            responseText: 'Отлично! Какой текст твоей новой задачи?',
+            responseText: 'Отлично! Введи текст твоей новой задачи',
             options: createTodoOptions,
             StateType: 'create_todo'
         }

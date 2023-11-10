@@ -7,7 +7,6 @@ import { messagesController } from "./api/messages.controller";
 import { commonCommands } from "./constants";
 import { callbackController } from "./api/callback.controller";
 import { UserStateService } from "./application/userState.service";
-import { BasicUserStateService } from "./application/BasicUserState.serivce";
 
 const token = process.env.TELEGRAM_BOT_TOKEN
 class MyBot extends TelegramBot {
@@ -40,10 +39,6 @@ export const calendar = new Calendar(bot, {
 
 const start = async () => {
     bot.setMyCommands(commonCommands)
-
-    bot.addListener('message', async (msg) => {
-        msg.userState = await BasicUserStateService.findUserState(msg.from.id)
-    })
 
     bot.on('message', messagesController)
 

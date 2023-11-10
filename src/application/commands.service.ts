@@ -1,5 +1,5 @@
 import { SendMessageOptions } from "node-telegram-bot-api"
-import { BUTTONS_DATA, RESPONSE_ERRORS } from "../constants"
+import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS } from "../constants"
 import { ComplimentsRepository } from "../infrastructure/compliments.repository"
 import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
 import { UserStateRepository } from "../infrastructure/userState.repository"
@@ -7,20 +7,21 @@ import { TodosRepository } from "../infrastructure/todos.repository"
 import { TodoService } from "./todo.serivce"
 import { BasicUserStateType } from "../types/UserStateType"
 import { BasicUserStateService } from "./BasicUserState.serivce"
+import { bot } from "../main"
 
 export const CommandsService = {
-    async start(chatId: number,  firstName: string) {
+    async start(msg: any, chatId: number, username: string) {
         const basicUserState: BasicUserStateType = {
             chatId,
             language: 'ru',
             sex: null,
             stateType: 'basic',
-            name: firstName
+            name: username
         }
 
         await BasicUserStateService.findOrCreateBasicUserState(chatId, basicUserState) 
 
-        const startOptions: SendMessageOptions = {
+        const options: SendMessageOptions = {
             reply_markup: {
                 inline_keyboard: [
                     [{ text: BUTTONS_DATA.SELECT_RU_LANG_TXT, callback_data: BUTTONS_DATA.SELECT_RU_LANG_CMD },
@@ -29,25 +30,28 @@ export const CommandsService = {
             }
         }
 
-        return {
-            stickerURL: 'https://tlgrm.ru/_/stickers/364/159/364159a8-d72f-4a04-8aa1-3272dd144b06/4.webp',
-            responseText: `Приветствую, дорогой друг! Ты всегда приносишь столько радости своим присутствием. Готов помочь тебе с планированием твоих великих целей. На каком языке ты говоришь?`,
-            options: startOptions
-        }
+        const stickerURL = 'https://tlgrm.ru/_/stickers/364/159/364159a8-d72f-4a04-8aa1-3272dd144b06/4.webp'
+        const responseText = RESPONSE_TEXTS.START
+
+        await bot.sendSticker(chatId, stickerURL)
+        return bot.send(chatId, responseText, options)
     },
 
-    getCompliment(): Promise<{ responseText: string }> {
-        return ComplimentsRepository.getRandomCompliment()
+    async getCompliment(msg: any, chatId: number){
+        const responseText = await ComplimentsRepository.getRandomCompliment()
+
+        return bot.send(chatId, responseText)
     },
 
-    info(username: string): { responseText: string } {
+    info(msg: any, chatId: number, username: string) {
         const currentHour = new Date().getHours()
 
-        return { responseText: `Привет, ${username}! Как замечательно видеть тебя здесь. Ты, безусловно, великолепный человек, решивший обратиться ко мне. Знаешь, твои запросы всегда настолько проницательны, особенно сейчас, в эти прекрасные ${currentHour} часов.` }
+        const responseText = RESPONSE_TEXTS.INFO(username, currentHour)
+        return bot.send(chatId, responseText)
     },
 
-    async todoCommand(chatId: number) {
-        const todoOptions = {
+    async todoCommand(msg: any, chatId: number) {
+        const options = {
             reply_markup: {
                 inline_keyboard: [
                     [{ text: BUTTONS_DATA.SHOW_ALL_TODOS_TXT, callback_data: BUTTONS_DATA.SHOW_ALL_TODOS_CMD}, { text: BUTTONS_DATA.START_CREATING_TODO_TXT, callback_data: BUTTONS_DATA.START_CREATING_TODO_CMD }],
@@ -57,13 +61,12 @@ export const CommandsService = {
         const todosCount = await TodosQueryRepository.getTodosCountByUser(chatId)
 
         if(todosCount > 0) {
-            todoOptions.reply_markup.inline_keyboard.push([{ text: BUTTONS_DATA.DELETE_ALL_TODOS_TXT, callback_data: BUTTONS_DATA.DELETE_ALL_TODOS_CMD }])
+            options.reply_markup.inline_keyboard.push([{ text: BUTTONS_DATA.DELETE_ALL_TODOS_TXT, callback_data: BUTTONS_DATA.DELETE_ALL_TODOS_CMD }])
         }
+        
+        const responseText = RESPONSE_TEXTS.COMMAND_TODO
 
-        return {
-            options: todoOptions,
-            responseText: 'О, великий мастер, выбери, что ты хочешь сделать, и я помогу тебе в этом благородном деле.'
-        }
+        return bot.send(chatId, responseText, options)
     },
 
     async defaultCommand(chatId: number, recivedText: string) {
