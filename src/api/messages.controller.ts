@@ -18,36 +18,21 @@ export async function messagesController(msg) {
             break;
         case '/compliment':
             handler = CommandsService.getCompliment
-
             break;
         case '/todo':
             handler = CommandsService.todoCommand
-
             break;
         case '/bug':
-            responseData = CommandsService.bug()
-
-            return bot.send(chatId, responseData.responseText)
+            handler = CommandsService.bug
+            break;
         // for test
         case '/del-thread':
             await UserStateRepository.deleteAllUserStates(chatId)
 
             return bot.send(chatId, 'kek')
         default:
-            responseData = await CommandsService.defaultCommand(chatId, recivedText)
-
-            let sendMessageResult = null
-            if(responseData.responseText) {
-                sendMessageResult = await bot.send(chatId, responseData.responseText, responseData.options)
-            }
-
-            // TODO_update_msg_id
-            switch(responseData.StateType) {
-                case('create_todo'):
-                    calendar.startNavCalendar(msg)
-                default:
-                    return
-            }
-    }
+            handler =  CommandsService.defaultCommand
+            break;
+        }
     await processUpdate(msg, handler)
 }

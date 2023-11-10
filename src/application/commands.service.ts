@@ -1,5 +1,5 @@
 import { SendMessageOptions } from "node-telegram-bot-api"
-import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS } from "../constants"
+import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS, RESPONSE_WARNS } from "../constants"
 import { ComplimentsRepository } from "../infrastructure/compliments.repository"
 import { TodosQueryRepository } from "../infrastructure/todos.query-repository"
 import { UserStateRepository } from "../infrastructure/userState.repository"
@@ -7,7 +7,9 @@ import { TodosRepository } from "../infrastructure/todos.repository"
 import { TodoService } from "./todo.serivce"
 import { BasicUserStateType } from "../types/UserStateType"
 import { BasicUserStateService } from "./BasicUserState.serivce"
-import { bot } from "../main"
+import { bot, calendar } from "../main"
+import { TodoUserStateType } from "../types/UserStateType"
+import { WithId } from "mongodb"
 
 export const CommandsService = {
     async start(msg: any, chatId: number, username: string) {
@@ -69,52 +71,52 @@ export const CommandsService = {
         return bot.send(chatId, responseText, options)
     },
 
-    async defaultCommand(chatId: number, recivedText: string) {
-        const userState = await UserStateRepository.findUserState(chatId)
+    async defaultCommand(msg: any, chatId: number, username: string, recivedText: string, actualUserState: WithId<TodoUserStateType>) {
+        let responseText: string
+        console.log(actualUserState);
+        
 
-            if(!userState) {
-                return { responseText: 'Простите, я не совсем понимаю ваш запрос. Мой фокус - помогать вам с задачами. Если нужна помощь, просто скажите, и я сделаю всё возможное, чтобы помочь вам.' }
-            }
+        if(!actualUserState) {
+            responseText = RESPONSE_WARNS.DEFAULT
+            return bot.send(chatId, responseText)
+        }
 
-            switch(userState.stateType) {
-                case('create_todo'):
-                    if(!userState.todoText) {
-                        await UserStateRepository.updateStateTodoText(userState._id, recivedText)
-
-                        const updateTodoTextOptions: SendMessageOptions = {
-                            reply_markup: {
-                                inline_keyboard: [
-                                    [{ text: BUTTONS_DATA.DELETE_TODO_TEXT_TXT, callback_data: BUTTONS_DATA.DELETE_TODO_TEXT_CMD }]
-                                ]
-                            }
-                        }
-
-                        return { 
-                            responseText: 'Такого рода задачи могут быть только у поистине величайших людей! Текст задачи записан! А когда нужно выполнить эту задачу?',
-                            options: updateTodoTextOptions,
-                            StateType: userState.stateType,
+        switch(actualUserState.stateType) {
+            case('create_todo'):
+                if(!actualUserState.todoText) {
+                    await UserStateRepository.updateStateTodoText(actualUserState._id, recivedText)
+                    const options: SendMessageOptions = {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: BUTTONS_DATA.DELETE_TODO_TEXT_TXT, callback_data: BUTTONS_DATA.DELETE_TODO_TEXT_CMD }]
+                            ]
                         }
                     }
-                case('change_todo_text'):
-                    //@ts-ignore in this case todoId exists in userState
-                    const isChanged = await TodosRepository.changeTodoText(userState.todoId, recivedText)
+                    const responseText = RESPONSE_TEXTS.ADD_TOO_TEXT
 
-                    if(!isChanged) {
-                        return { responseText: RESPONSE_ERRORS.SOMETHING_WRONG}
-                    }
+                    await bot.send(chatId, responseText, options)
+                    return calendar.startNavCalendar(msg)
+                }
+            case('change_todo_text'):
+                //@ts-ignore in this case todoId exists in userState
+                const isChanged = await TodosRepository.changeTodoText(actualUserState.todoId, recivedText)
 
-                    await UserStateRepository.deleteUserState(chatId, 'change_todo_text')
+                if(!isChanged) {
+                    return { responseText: RESPONSE_ERRORS.SOMETHING_WRONG}
+                }
 
-                    //@ts-ignore in this case todoId exists in userState
-                    const showTodoResponseData = await TodoService.showTodo(userState.todoId)
+                await UserStateRepository.deleteUserState(chatId, 'change_todo_text')
+                
+                //@ts-ignore in this case todoId exists in userState
+                const showTodoResponseData = await TodoService.showTodo(actualUserState.todoId)
 
-                    return { ...showTodoResponseData, StateType: userState.stateType }
-            }
+                return bot.send(chatId, showTodoResponseData.responseText, showTodoResponseData.options)
+        }
     },
 
-    bug() {
-        return {
-            responseText: 'Привет, догорой пользователь! Если ты обнаружил ошибку в моей работе, пожалуйста, напиши разработчику\nhttps://t.me/justseme'
-        }
+    bug(msg: any, chatId: number) {
+        const responseText = RESPONSE_TEXTS.CMD_BUG
+        
+        return bot.send(chatId, responseText)
     }
 }
