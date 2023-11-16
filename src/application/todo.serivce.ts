@@ -2,20 +2,18 @@ import { SendMessageOptions } from "node-telegram-bot-api"
 import { getTodoId, getWordByNumber } from "../helpers"
 import { TodosRepository } from "../infrastructure/todos.repository"
 import { TodoType } from "../types/TodoType"
-import { ChangeTodoTextStateType, CreateTodoStateType, TodoUserStateType } from "../types/UserStateType"
 import { UserStateService } from "./userState.service"
 import { BUTTONS_DATA, RESPONSE_ERRORS, RESPONSE_TEXTS, RESPONSE_WARNS } from "../constants"
 import { UserStateRepository } from "../infrastructure/userState.repository"
 import moment from "moment"
-import { WithId } from "mongodb"
 import { bot } from "../main"
 
 export const TodoService = {
-    async createTodo(chatId: number, first_name: string, todoText: string, date: string, hours: string) {
+    async createTodo(msg: any, chatId: number, todoText: string, date: string, hours: string) {
         const todo: TodoType = {
             chatId: chatId,
-            firstName: first_name,
             todoText: todoText,
+            firstName: msg.basicUserState.name,
             completed: false,
             todoDate: new Date(date),
             hourForNotify: +hours,
@@ -25,7 +23,7 @@ export const TodoService = {
 
         const insertedResult = await TodosRepository.createTodo(todo)
 
-        return this.showTodo(insertedResult.insertedId)
+        return this.showTodo(msg, chatId, insertedResult.insertedId)
     },
 
     async showAllTodos(msg: any, chatId: number) {
@@ -126,10 +124,13 @@ export const TodoService = {
         return bot.send(chatId, responseText, deleteTodoOptions)
     },
 
-    async showTodo(msg: any, chatId: number) {
-        const { todoId } = getTodoId(msg.data)
+    async showTodo(msg: any, chatId: number, id?: string) {
+        if(!id) {
+            const { todoId } = getTodoId(msg.data)
+            id = todoId
+        }
 
-        const todoById = await TodosRepository.getTodoById(todoId)
+        const todoById = await TodosRepository.getTodoById(id)
 
         if(!todoById) {
             return { responseText: RESPONSE_ERRORS.DOES_NOT_EXISTS_TODO }
@@ -141,46 +142,64 @@ export const TodoService = {
         const showTodoOptions = {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: BUTTONS_DATA.CHANGE_TODO_TEXT_TXT, callback_data: BUTTONS_DATA.CHANGE_TODO_TEXT_CMD + todoId }]
+                    [{ text: BUTTONS_DATA.CHANGE_TODO_TEXT_TXT, callback_data: BUTTONS_DATA.CHANGE_TODO_TEXT_CMD + id }]
                 ]
             }
         }
 
         if(todoById.completed) {
             todoCompletedEmoj = '✅'
-            showTodoOptions.reply_markup.inline_keyboard.push([{ text: BUTTONS_DATA.UNCOMPLETE_TODO_TXT, callback_data: BUTTONS_DATA.UNCOMPLETE_TODO_CMD + todoId }])
+            showTodoOptions.reply_markup.inline_keyboard.push([{ text: BUTTONS_DATA.UNCOMPLETE_TODO_TXT, callback_data: BUTTONS_DATA.UNCOMPLETE_TODO_CMD + id }])
         } else {
             todoCompletedEmoj = '❌'
-            showTodoOptions.reply_markup.inline_keyboard.push([{ text: BUTTONS_DATA.COMPLETE_TODO_TXT, callback_data: BUTTONS_DATA.COMLETE_TODO_CMD + todoId }])
+            showTodoOptions.reply_markup.inline_keyboard.push([{ text: BUTTONS_DATA.COMPLETE_TODO_TXT, callback_data: BUTTONS_DATA.COMLETE_TODO_CMD + id }])
         }
         const responseText = RESPONSE_TEXTS.SHOW_TODO(todoById.todoText, formattedDate, todoById.hourForNotify, todoCompletedEmoj)
 
         return bot.send(chatId, responseText, showTodoOptions)
     },
 
-    async changeCompleted(todoId: string, completed: boolean) {
+    async completeTodo(msg: any, chatId: number) {
+        const { todoId } = getTodoId(msg.data)
+
         const todoById = await TodosRepository.getTodoById(todoId)
 
         if(!todoById) {
             return { responseText: RESPONSE_ERRORS.DOES_NOT_EXISTS_TODO }
         }
 
-        if(todoById.completed === completed) {
+        if(todoById.completed === true) {
             return { responseText: RESPONSE_WARNS.STATUS_TODO_ALREADY_SETTED }
         }
 
-        const isUpdated = await TodosRepository.changeCompleted(todoId, completed)
+        await TodosRepository.changeCompleted(todoId, true)
 
-        if(!isUpdated) {
-            return { responseText: RESPONSE_ERRORS.SOMETHING_WRONG }
-        }
-
-        return this.showTodo(todoId)
+        return this.showTodo(msg, chatId, todoId)
     },
 
-    async changeTodoText(chatId: number, todoId: string) {
+    async unCompleteTodo(msg: any, chatId: number) {
+        const { todoId } = getTodoId(msg.data)
+
+        const todoById = await TodosRepository.getTodoById(todoId)
+
+        if(!todoById) {
+            return { responseText: RESPONSE_ERRORS.DOES_NOT_EXISTS_TODO }
+        }
+
+        if(todoById.completed === true) {
+            return { responseText: RESPONSE_WARNS.STATUS_TODO_ALREADY_SETTED }
+        }
+
+        await TodosRepository.changeCompleted(todoId, true)
+
+        return this.showTodo(msg, chatId, todoId)
+    },
+
+    async changeTodoText(msg: any, chatId: number) {
+        const { todoId } = getTodoId(msg.data)
+
         await UserStateService.findOrCreateTodoUserState(chatId, 'change_todo_text', todoId)
 
-        return { responseText: RESPONSE_TEXTS.CHANGE_TODO_TEXT_STATE_CREATED }
+        return bot.send(chatId, RESPONSE_TEXTS.CHANGE_TODO_TEXT_STATE_CREATED)
     }
 }

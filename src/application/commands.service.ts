@@ -111,9 +111,7 @@ export const CommandsService = {
                 await UserStateRepository.deleteUserState(chatId, 'change_todo_text')
                 
                 //@ts-ignore in this case todoId exists in userState
-                const showTodoResponseData = await TodoService.showTodo(actualUserState.todoId)
-
-                return bot.send(chatId, showTodoResponseData.responseText, showTodoResponseData.options)
+                return TodoService.showTodo(actualUserState.todoId)
         }
     },
 

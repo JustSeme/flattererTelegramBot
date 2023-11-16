@@ -35,48 +35,54 @@ export async function callbackController(msg: any) {
             handler = TodoService.showTodo
             break;
         case(BUTTONS_DATA.COMLETE_TODO_CMD):
-            responseData = await TodoService.changeCompleted(todoId, true)
-
-            return bot.send(chatId, responseData.responseText, responseData.options)
+            handler = TodoService.completeTodo
+            break;
         case(BUTTONS_DATA.UNCOMPLETE_TODO_CMD):
-            responseData = await TodoService.changeCompleted(todoId, false)
-
-            return bot.send(chatId, responseData.responseText, responseData.options)
+            handler = TodoService.unCompleteTodo
+            break;
         case(BUTTONS_DATA.CONTINUE_CREATING_TODO_CMD):
             return calendar.startNavCalendar(message)
         case(BUTTONS_DATA.CHANGE_TODO_TEXT_CMD):
-            responseData = await TodoService.changeTodoText(chatId, todoId)
-
-            return bot.send(chatId, responseData.responseText, responseData.options)
-            // TODO_update_msg_id
+            handler = TodoService.changeTodoText
+            break;
         case(BUTTONS_DATA.CONFIRM_FIRST_NAME_CMD):
-            responseData = BasicUserStateService.confirmFirstName(userState.name)
-
-            return bot.send(chatId, responseData.responseText, responseData.options)
+            handler = (msg: any, chatId: number) => {
+                const responseData = BasicUserStateService.confirmFirstName(msg.basicUserState.name)
+                return bot.send(chatId, responseData.responseText, responseData.options)
+            }
+            break;
         case(BUTTONS_DATA.REJECT_FIRST_NAME_CMD):
-            responseData = await BasicUserStateService.rejectName(chatId)
-
-            return bot.send(chatId, responseData.responseText)
+            handler = async (msg: any, chatId: number) => {
+                const responseData = await BasicUserStateService.rejectName(chatId)
+                return bot.send(chatId, responseData.responseText)
+            }
+            break;
         case(BUTTONS_DATA.SELECT_RU_LANG_CMD):
-            responseData = await BasicUserStateService.selectLang(chatId, 'ru', userState.name)
-
-            return bot.send(chatId, responseData.responseText, responseData.options)
+            handler = async (msg: any, chatId: number) => {
+                const responseData = await BasicUserStateService.selectLang(chatId, 'ru', msg.basicUserState.name)
+                return bot.send(chatId, responseData.responseText, responseData.options)
+            }
+            break;
         case(BUTTONS_DATA.SELECT_EN_LANG_CMD):
-            responseData = await BasicUserStateService.selectLang(chatId, 'en', userState.name)
-
-            return bot.send(chatId, responseData.responseText, responseData.options)
+            handler = async (msg: any, chatId: number) => {
+                const responseData = await BasicUserStateService.selectLang(chatId, 'en', msg.basicUserState.name)
+                return bot.send(chatId, responseData.responseText, responseData.options)
+            }
         case(BUTTONS_DATA.SELECT_MALE_SEX_CMD):
-            responseData = await BasicUserStateService.selectSex(chatId, 'male')
-
-            return bot.send(chatId, responseData.responseText)
+            handler = async (msg: any, chatId: number) => {
+                const responseData = await BasicUserStateService.selectSex(chatId, 'male')
+                return bot.send(chatId, responseData.responseText)
+            }
         case(BUTTONS_DATA.SELECT_FEMALE_SEX_CMD):
-            responseData = await BasicUserStateService.selectSex(chatId, 'female')
-
-            return bot.send(chatId, responseData.responseText)
+            handler = async (msg: any, chatId: number) => {
+                const responseData = await BasicUserStateService.selectSex(chatId, 'female')
+                return bot.send(chatId, responseData.responseText)
+            }
         case(BUTTONS_DATA.SELECT_OTHER_SEX_CMD):
-            responseData = await BasicUserStateService.selectSex(chatId, 'other')
-
-            return bot.send(chatId, responseData.responseText)
+            handler = async (msg: any, chatId: number) => {
+                const responseData = await BasicUserStateService.selectSex(chatId, 'other')
+                return bot.send(chatId, responseData.responseText)
+            }
         default:
             handler = async (msg: any, chatId: number) => {
                 const actualUserState = await UserStateService.findActualUserState(chatId)

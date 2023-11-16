@@ -15,7 +15,7 @@ export async function calendarHandler(msg: any, chatId: number) {
             if(actualUserState) {
                 switch(actualUserState.stateType) {
                     case('create_todo'):
-                        responseData = await TodoService.createTodo(chatId, msg.from.first_name, actualUserState.todoText, date, hours)
+                        responseData = await TodoService.createTodo(msg, chatId, actualUserState.todoText, date,  hours)
 
                         return bot.send(chatId, responseData.responseText, responseData.options)
                     default:

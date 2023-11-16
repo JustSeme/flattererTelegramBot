@@ -39,6 +39,15 @@ export const calendar = new Calendar(bot, {
     time_step: '1h',
 });
 
+async function notify() {
+    const todosForNotify = await TodosQueryRepository.getTodosForNotify()
+    
+        for(const todo of todosForNotify) {
+            const notifyText = `Счастлив уведомить вас, ${todo.firstName}, что пришло время выполнить задачу ${todo.todoText}!\n`
+            await bot.send(todo.chatId, notifyText)
+        }
+}
+
 const start = async () => {
     bot.setMyCommands(commonCommands)
 
@@ -49,12 +58,7 @@ const start = async () => {
     bot.on('callback_query', callbackController);
 
     setInterval(async () => {
-        const todosForNotify = await TodosQueryRepository.getTodosForNotify()
-    
-        for(const todo of todosForNotify) {
-            const notifyText = `Счастлив уведомить вас, ${todo.firstName}, что пришло время выполнить задачу ${todo.todoText}!\n`
-            await bot.send(todo.chatId, notifyText)
-        }
+        notify()
     }, 3600000) // ever hour
 }
 

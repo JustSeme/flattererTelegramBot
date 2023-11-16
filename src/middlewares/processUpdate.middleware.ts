@@ -1,5 +1,4 @@
 import { BasicUserStateService } from "../application/BasicUserState.serivce"
-import { getTodoId } from "../helpers"
 
 export const processUpdate = async (msg, handler: HandlerType) => {
     msg.basicUserState = await BasicUserStateService.findActualUserState(msg.from.id)
